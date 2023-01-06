@@ -1,12 +1,12 @@
 name: Publish Snapshot Package to GitHub Packages
 on:
   push:
-    branches: [main]
+    branches: [main,publish-javadoc-to-github-pages]
 jobs:
   publish:
     runs-on: ubuntu-latest 
     permissions: 
-      contents: read
+      contents: write
       packages: write 
     steps:
       - uses: actions/checkout@v3
@@ -22,3 +22,9 @@ jobs:
           arguments: publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish Javadoc
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: nrgcommon/build/doc/javadoc
+          target-folder: docs/nrgcommon/javadoc
+          clean: false
