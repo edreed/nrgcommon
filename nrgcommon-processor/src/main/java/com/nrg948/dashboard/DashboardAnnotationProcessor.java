@@ -108,7 +108,7 @@ public final class DashboardAnnotationProcessor extends AbstractProcessor {
 
   private final Map<TypeMirror, List<AnnotatedElement>> definitions = new HashMap<>();
   private final Map<TypeElement, List<AnnotatedElement>> tabContainers = new HashMap<>();
-  private final List<DashboardTabElement> tabModels = new ArrayList<>();
+  private final Map<String, List<DashboardTabElement>> tabModes = new HashMap<>();
 
   private TypeMirror dashboardDefinitionType;
   private TypeMirror dashboardTabType;
@@ -327,7 +327,8 @@ public final class DashboardAnnotationProcessor extends AbstractProcessor {
                   return Optional.empty();
                 }
 
-                return Optional.of(createTabModelElement(e, definitionElements.stream()));
+                return Optional.of(
+                    createTabModelElement(e, tabElement.annotation, definitionElements.stream()));
               }
 
               @Override
@@ -345,22 +346,31 @@ public final class DashboardAnnotationProcessor extends AbstractProcessor {
                   return Optional.empty();
                 }
 
-                return Optional.of(createTabModelElement(e, definitionElements.stream()));
+                return Optional.of(
+                    createTabModelElement(e, tabElement.annotation, definitionElements.stream()));
               }
             },
             null);
 
-    tabModels.add(
-        tabModel.orElseThrow(
-            () ->
-                new IllegalArgumentException(
-                    "Unsupported element type for @DashboardTab: "
-                        + tabElement.element.asType().toString())));
+    tabModel.ifPresentOrElse(
+        model -> {
+          for (var mode : model.getModes()) {
+            tabModes.computeIfAbsent(mode, k -> new ArrayList<>()).add(model);
+          }
 
-    tabContainers
-        .computeIfAbsent(
-            asTypeElement(tabElement.element.getEnclosingElement()).get(), k -> new ArrayList<>())
-        .add(tabElement);
+          tabContainers
+              .computeIfAbsent(
+                  asTypeElement(tabElement.element.getEnclosingElement()).get(),
+                  k -> new ArrayList<>())
+              .add(tabElement);
+        },
+        () ->
+            processingEnv
+                .getMessager()
+                .printMessage(
+                    ERROR,
+                    "Failed to process @DashboardTab for element: "
+                        + tabElement.element.getSimpleName().toString()));
   }
 
   /** Writes Java files for all dashboard tabs. */
@@ -482,15 +492,32 @@ public final class DashboardAnnotationProcessor extends AbstractProcessor {
 
     var dashboardElement = dashboardElementOpt.get();
 
-    buildDashboardConfigurationFile(dashboardElement);
+    buildDashboardConfigurationFiles(dashboardElement);
+  }
+
+  /**
+   * Builds the dashboard configuration files for all modes.
+   *
+   * @param dashboardElement The element annotated with {@link Dashboard}.
+   */
+  private void buildDashboardConfigurationFiles(TypeElement dashboardElement) {
+    for (var entry : tabModes.entrySet()) {
+      var mode = entry.getKey();
+      var tabModels = entry.getValue();
+
+      buildDashboardConfigurationFile(dashboardElement, mode, tabModels);
+    }
   }
 
   /**
    * Builds the dashboard configuration file for Elastic.
    *
    * @param dashboardElement The element annotated with {@link Dashboard}.
+   * @param mode The mode for which to build the dashboard configuration.
+   * @param tabModels The list of tab models for the dashboard.
    */
-  private void buildDashboardConfigurationFile(TypeElement dashboardElement) {
+  private void buildDashboardConfigurationFile(
+      TypeElement dashboardElement, String mode, List<DashboardTabElement> tabModels) {
     try {
       var rootElement =
           (DashboardElement)
@@ -503,7 +530,7 @@ public final class DashboardAnnotationProcessor extends AbstractProcessor {
               .createResource(
                   StandardLocation.SOURCE_OUTPUT,
                   "",
-                  "deploy/elastic-dashboard.json",
+                  String.format("deploy/elastic-%s.json", mode.toLowerCase().replace(" ", "-")),
                   dashboardElement);
       try (var writer = dashboardFile.openOutputStream()) {
         ElasticConfiguration.build(rootElement, writer);
@@ -524,12 +551,31 @@ public final class DashboardAnnotationProcessor extends AbstractProcessor {
    * @return The created {@link DashboardTabElement}.
    */
   private DashboardTabElement createTabModelElement(
-      Element tabElement, Stream<AnnotatedElement> annotatedElement) {
+      Element tabElement,
+      AnnotationMirror tabAnnotation,
+      Stream<AnnotatedElement> annotatedElement) {
     var definitionElements =
         annotatedElement.map(this::createNestedModelElement).toArray(DashboardElementBase[]::new);
-    var tabTitle = getElementTitle(tabElement);
+    var tabValues =
+        processingEnv
+            .getElementUtils()
+            .getElementValuesWithDefaults(tabAnnotation)
+            .entrySet()
+            .stream()
+            .collect(
+                Collectors.toMap(e -> e.getKey().getSimpleName().toString(), e -> e.getValue()));
+    var tabTitle = tabValues.get("title").getValue().toString();
 
-    return new DashboardTabElement(tabTitle, definitionElements);
+    if (tabTitle.isEmpty()) {
+      tabTitle = tabElement.getSimpleName().toString();
+    }
+
+    var tabModes =
+        Arrays.stream((Object[]) getAnnotationValue(tabValues.get("modes")))
+            .map(Object::toString)
+            .toArray(String[]::new);
+
+    return new DashboardTabElement(tabTitle, tabModes, definitionElements);
   }
 
   /**
@@ -1101,6 +1147,11 @@ public final class DashboardAnnotationProcessor extends AbstractProcessor {
           @Override
           public Object defaultAction(Object o, Void p) {
             return o;
+          }
+
+          @Override
+          public Object visitArray(List<? extends AnnotationValue> values, Void p) {
+            return values.stream().map(v -> v.accept(this, null)).toArray(size -> new Object[size]);
           }
 
           @SuppressWarnings({"unchecked", "rawtypes"})

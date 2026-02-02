@@ -1211,7 +1211,7 @@ public abstract class DashboardData implements AutoCloseable {
    * @param binder The function to bind the tab container value to the tab.
    * @return The bound DashboardData instance.
    */
-  public static <T> DashboardData bindTab(
+  public static <T> TabBinding bindTab(
       String title, T container, BiFunction<String, T, DashboardData[]> binder) {
     var tabBinding = new TabBinding(binder.apply(title, container));
 
@@ -1231,7 +1231,7 @@ public abstract class DashboardData implements AutoCloseable {
    * @return An Optional containing the bound DashboardData instance if the container is present, or
    *     an empty Optional if not.
    */
-  public static <T> Optional<DashboardData> bindOptionalTab(
+  public static <T> Optional<TabBinding> bindOptionalTab(
       String title, Optional<T> container, BiFunction<String, T, DashboardData[]> binder) {
     return container.map(c -> bindTab(title, c, binder));
   }
