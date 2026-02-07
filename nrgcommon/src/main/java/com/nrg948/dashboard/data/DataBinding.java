@@ -23,10 +23,15 @@
 */
 package com.nrg948.dashboard.data;
 
+import edu.wpi.first.networktables.PubSub;
+import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.networktables.Publisher;
 import edu.wpi.first.networktables.Subscriber;
+import edu.wpi.first.networktables.Topic;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * A data binding that binds a publisher and/or subscriber to dashboard data updates.
@@ -34,67 +39,90 @@ import java.util.function.Consumer;
  * @param <P> The type of the publisher.
  * @param <S> The type of the subscriber.
  */
-final class DataBinding<P extends Publisher, S extends Subscriber> extends DashboardData {
-  private final Optional<P> publisher;
+final class DataBinding<T extends Topic, P extends Publisher, S extends Subscriber>
+    extends DashboardData {
+  private static final PubSubOption[] NO_OPTIONS = new PubSubOption[0];
+
+  private final T topic;
+  private final Function<T, P> toPublisher;
   private final Optional<Consumer<P>> publishUpdates;
-  private final Optional<S> subscriber;
+  private final BiFunction<T, PubSubOption[], S> toSubscriber;
   private final Optional<Consumer<S>> updateSubscriber;
+
+  private Optional<P> publisher = Optional.empty();
+  private Optional<S> subscriber = Optional.empty();
 
   /**
    * Constructs a DataBinding with the given publisher, publishUpdates function, subscriber, and
    * updateSubscriber function.
    *
-   * @param publisher The publisher to bind.
+   * @param topic The topic to bind.
+   * @param toPublisher The function to create a publisher from a topic.
    * @param publishUpdates The function to update the publisher.
-   * @param subscriber The subscriber to bind.
+   * @param toSubscriber The function to create a subscriber from a topic with options.
    * @param updateSubscriber The function to update the subscriber.
    */
   public DataBinding(
-      Optional<P> publisher,
+      T topic,
+      Function<T, P> toPublisher,
       Optional<Consumer<P>> publishUpdates,
-      Optional<S> subscriber,
+      BiFunction<T, PubSubOption[], S> toSubscriber,
       Optional<Consumer<S>> updateSubscriber) {
-    this.publisher = publisher;
+    this.topic = topic;
+    this.toPublisher = toPublisher;
     this.publishUpdates = publishUpdates;
-    this.subscriber = subscriber;
+    this.toSubscriber = toSubscriber;
     this.updateSubscriber = updateSubscriber;
-
-    if (publisher.isPresent() != publishUpdates.isPresent()) {
-      throw new IllegalArgumentException(
-          "The publisher and publishUpdates arguments must both be present or both be absent.");
-    }
-
-    if (subscriber.isPresent() != updateSubscriber.isPresent()) {
-      throw new IllegalArgumentException(
-          "The subscriber and readUpdates arguments must both be present or both be absent.");
-    }
   }
 
   /**
    * Constructs a DataBinding with only a publisher.
    *
-   * @param publisher The publisher to bind.
+   * @param topic The topic to bind.
+   * @param toPublisher The function to create a publisher from a topic.
    * @param publishUpdates The function to update the publisher.
    */
-  public DataBinding(P publisher, Consumer<P> publishUpdates) {
-    this(Optional.of(publisher), Optional.of(publishUpdates), Optional.empty(), Optional.empty());
+  public DataBinding(T topic, Function<T, P> toPublisher, Consumer<P> publishUpdates) {
+    this(topic, toPublisher, Optional.of(publishUpdates), (t, u) -> null, Optional.empty());
   }
 
   /**
    * Constructs a DataBinding with both a publisher and a subscriber.
    *
-   * @param publisher The publisher to bind.
+   * @param toPublisher The function to create a publisher from a topic.
    * @param publishUpdates The function to update the publisher.
-   * @param subscriber The subscriber to bind.
+   * @param toSubscriber The function to create a subscriber from a topic with options.
    * @param updateSubscriber The function to update the subscriber.
    */
   public DataBinding(
-      P publisher, Consumer<P> publishUpdates, S subscriber, Consumer<S> updateSubscriber) {
+      T topic,
+      Function<T, P> toPublisher,
+      Consumer<P> publishUpdates,
+      BiFunction<T, PubSubOption[], S> toSubscriber,
+      Consumer<S> updateSubscriber) {
     this(
-        Optional.of(publisher),
+        topic,
+        toPublisher,
         Optional.of(publishUpdates),
-        Optional.of(subscriber),
+        toSubscriber,
         Optional.of(updateSubscriber));
+  }
+
+  @Override
+  public void enable() {
+    publisher = Optional.ofNullable(toPublisher.apply(topic));
+
+    var options = publisher.map(p -> new PubSubOption[] {PubSubOption.excludePublisher(p)}).orElse(NO_OPTIONS);
+
+    subscriber = Optional.ofNullable(toSubscriber.apply(topic, options));
+  }
+
+  @Override
+  public void disable() {
+    publisher.ifPresent(Publisher::close);
+    subscriber.ifPresent(Subscriber::close);
+    publisher = Optional.empty();
+    subscriber = Optional.empty();
   }
 
   @Override

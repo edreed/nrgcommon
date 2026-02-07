@@ -101,6 +101,12 @@ public abstract class DashboardData implements AutoCloseable {
 
   private static final ArrayList<DashboardData> bindings = new ArrayList<>();
 
+  /** Enables the dashboard data binding. */
+  public abstract void enable();
+
+  /** Disables the dashboard data binding. */
+  public abstract void disable();
+
   /**
    * Receives updates from the dashboard to update the bound data and/or publishes updates to the
    * dashboard received from the bound data.
@@ -130,10 +136,12 @@ public abstract class DashboardData implements AutoCloseable {
   public static <T> void bindBoolean(String topic, T container, ToBooleanFunction<T> getter) {
     BooleanTopic booleanTopic = TABLE.getBooleanTopic(topic);
 
-    BooleanPublisher publisher = booleanTopic.publish();
+    Function<BooleanTopic, BooleanPublisher> toPublisher = (t) -> t.publish();
     Consumer<BooleanPublisher> publishUpdates = (pub) -> pub.set(getter.applyAsBoolean(container));
 
-    bindings.add(new DataBinding<BooleanPublisher, BooleanSubscriber>(publisher, publishUpdates));
+    bindings.add(
+        new DataBinding<BooleanTopic, BooleanPublisher, BooleanSubscriber>(
+            booleanTopic, toPublisher, publishUpdates));
   }
 
   /**
@@ -145,10 +153,12 @@ public abstract class DashboardData implements AutoCloseable {
   public static void bindStaticBoolean(String topic, BooleanSupplier getter) {
     BooleanTopic booleanTopic = TABLE.getBooleanTopic(topic);
 
-    BooleanPublisher publisher = booleanTopic.publish();
+    Function<BooleanTopic, BooleanPublisher> toPublisher = (t) -> t.publish();
     Consumer<BooleanPublisher> publishUpdates = (pub) -> pub.set(getter.getAsBoolean());
 
-    bindings.add(new DataBinding<BooleanPublisher, BooleanSubscriber>(publisher, publishUpdates));
+    bindings.add(
+        new DataBinding<BooleanTopic, BooleanPublisher, BooleanSubscriber>(
+            booleanTopic, toPublisher, publishUpdates));
   }
 
   /**
@@ -187,11 +197,11 @@ public abstract class DashboardData implements AutoCloseable {
       String topic, T container, ToBooleanFunction<T> getter, ObjBooleanConsumer<T> setter) {
     BooleanTopic booleanTopic = TABLE.getBooleanTopic(topic);
 
-    BooleanPublisher publisher = booleanTopic.publish();
+    Function<BooleanTopic, BooleanPublisher> toPublisher = (t) -> t.publish();
     Consumer<BooleanPublisher> publishUpdates = (pub) -> pub.set(getter.applyAsBoolean(container));
 
-    BooleanSubscriber subscriber =
-        booleanTopic.subscribe(false, PubSubOption.excludePublisher(publisher));
+    Function<BooleanTopic, BooleanSubscriber> toSubscriber =
+        (t) -> t.subscribe(false, PubSubOption.excludePublisher(toPublisher.apply(t)));
     Consumer<BooleanSubscriber> updateSubscriber =
         (sub) -> {
           for (var update : sub.readQueueValues()) {
@@ -199,7 +209,9 @@ public abstract class DashboardData implements AutoCloseable {
           }
         };
 
-    bindings.add(new DataBinding<>(publisher, publishUpdates, subscriber, updateSubscriber));
+    bindings.add(
+        new DataBinding<>(
+            booleanTopic, toPublisher, publishUpdates, toSubscriber, updateSubscriber));
   }
 
   /**
@@ -213,11 +225,11 @@ public abstract class DashboardData implements AutoCloseable {
       String topic, BooleanSupplier getter, BooleanConsumer setter) {
     BooleanTopic booleanTopic = TABLE.getBooleanTopic(topic);
 
-    BooleanPublisher publisher = booleanTopic.publish();
+    Function<BooleanTopic, BooleanPublisher> toPublisher = (t) -> t.publish();
     Consumer<BooleanPublisher> publishUpdates = (pub) -> pub.set(getter.getAsBoolean());
 
-    BooleanSubscriber subscriber =
-        booleanTopic.subscribe(false, PubSubOption.excludePublisher(publisher));
+    Function<BooleanTopic, BooleanSubscriber> toSubscriber =
+        (t) -> t.subscribe(false, PubSubOption.excludePublisher(toPublisher.apply(t)));
     Consumer<BooleanSubscriber> updateSubscriber =
         (sub) -> {
           for (var update : sub.readQueueValues()) {
@@ -225,7 +237,9 @@ public abstract class DashboardData implements AutoCloseable {
           }
         };
 
-    bindings.add(new DataBinding<>(publisher, publishUpdates, subscriber, updateSubscriber));
+    bindings.add(
+        new DataBinding<>(
+            booleanTopic, toPublisher, publishUpdates, toSubscriber, updateSubscriber));
   }
 
   /**
@@ -240,11 +254,12 @@ public abstract class DashboardData implements AutoCloseable {
       String topic, T container, Function<T, boolean[]> getter) {
     BooleanArrayTopic booleanArrayTopic = TABLE.getBooleanArrayTopic(topic);
 
-    BooleanArrayPublisher publisher = booleanArrayTopic.publish();
+    Function<BooleanArrayTopic, BooleanArrayPublisher> toPublisher = (t) -> t.publish();
     Consumer<BooleanArrayPublisher> publishUpdates = (pub) -> pub.set(getter.apply(container));
 
     bindings.add(
-        new DataBinding<BooleanArrayPublisher, BooleanArraySubscriber>(publisher, publishUpdates));
+        new DataBinding<BooleanArrayTopic, BooleanArrayPublisher, BooleanArraySubscriber>(
+            booleanArrayTopic, toPublisher, publishUpdates));
   }
 
   /**
@@ -256,11 +271,12 @@ public abstract class DashboardData implements AutoCloseable {
   public static void bindStaticBooleanArray(String topic, Supplier<boolean[]> getter) {
     BooleanArrayTopic booleanArrayTopic = TABLE.getBooleanArrayTopic(topic);
 
-    BooleanArrayPublisher publisher = booleanArrayTopic.publish();
+    Function<BooleanArrayTopic, BooleanArrayPublisher> toPublisher = (t) -> t.publish();
     Consumer<BooleanArrayPublisher> publishUpdates = (pub) -> pub.set(getter.get());
 
     bindings.add(
-        new DataBinding<BooleanArrayPublisher, BooleanArraySubscriber>(publisher, publishUpdates));
+        new DataBinding<BooleanArrayTopic, BooleanArrayPublisher, BooleanArraySubscriber>(
+            booleanArrayTopic, toPublisher, publishUpdates));
   }
 
   /**
@@ -299,11 +315,12 @@ public abstract class DashboardData implements AutoCloseable {
       String topic, T container, Function<T, boolean[]> getter, BiConsumer<T, boolean[]> setter) {
     BooleanArrayTopic booleanArrayTopic = TABLE.getBooleanArrayTopic(topic);
 
-    BooleanArrayPublisher publisher = booleanArrayTopic.publish();
+    Function<BooleanArrayTopic, BooleanArrayPublisher> toPublisher = (t) -> t.publish();
     Consumer<BooleanArrayPublisher> publishUpdates = (pub) -> pub.set(getter.apply(container));
 
-    BooleanArraySubscriber subscriber =
-        booleanArrayTopic.subscribe(EMPTY_BOOLEAN_ARRAY, PubSubOption.excludePublisher(publisher));
+    Function<BooleanArrayTopic, BooleanArraySubscriber> toSubscriber =
+        (t) ->
+            t.subscribe(EMPTY_BOOLEAN_ARRAY, PubSubOption.excludePublisher(toPublisher.apply(t)));
     Consumer<BooleanArraySubscriber> updateSubscriber =
         (sub) -> {
           for (var update : sub.readQueueValues()) {
@@ -311,7 +328,9 @@ public abstract class DashboardData implements AutoCloseable {
           }
         };
 
-    bindings.add(new DataBinding<>(publisher, publishUpdates, subscriber, updateSubscriber));
+    bindings.add(
+        new DataBinding<>(
+            booleanArrayTopic, toPublisher, publishUpdates, toSubscriber, updateSubscriber));
   }
 
   /**
@@ -325,11 +344,12 @@ public abstract class DashboardData implements AutoCloseable {
       String topic, Supplier<boolean[]> getter, Consumer<boolean[]> setter) {
     BooleanArrayTopic booleanArrayTopic = TABLE.getBooleanArrayTopic(topic);
 
-    BooleanArrayPublisher publisher = booleanArrayTopic.publish();
+    Function<BooleanArrayTopic, BooleanArrayPublisher> toPublisher = (t) -> t.publish();
     Consumer<BooleanArrayPublisher> publishUpdates = (pub) -> pub.set(getter.get());
 
-    BooleanArraySubscriber subscriber =
-        booleanArrayTopic.subscribe(EMPTY_BOOLEAN_ARRAY, PubSubOption.excludePublisher(publisher));
+    Function<BooleanArrayTopic, BooleanArraySubscriber> toSubscriber =
+        (t) ->
+            t.subscribe(EMPTY_BOOLEAN_ARRAY, PubSubOption.excludePublisher(toPublisher.apply(t)));
     Consumer<BooleanArraySubscriber> updateSubscriber =
         (sub) -> {
           for (var update : sub.readQueueValues()) {
@@ -337,7 +357,9 @@ public abstract class DashboardData implements AutoCloseable {
           }
         };
 
-    bindings.add(new DataBinding<>(publisher, publishUpdates, subscriber, updateSubscriber));
+    bindings.add(
+        new DataBinding<>(
+            booleanArrayTopic, toPublisher, publishUpdates, toSubscriber, updateSubscriber));
   }
 
   /**

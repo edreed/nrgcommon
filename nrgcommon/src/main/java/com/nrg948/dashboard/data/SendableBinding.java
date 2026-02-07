@@ -66,10 +66,12 @@ import edu.wpi.first.util.function.FloatSupplier;
 import edu.wpi.first.util.sendable.Sendable;
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleSupplier;
+import java.util.function.Function;
 import java.util.function.LongConsumer;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
@@ -94,6 +96,11 @@ final class SendableBinding extends DashboardData implements NTSendableBuilder {
     sendable.initSendable(this);
 
     publishConstBoolean(".controllable", true);
+  }
+
+  @Override
+  public void enable() {
+    // Nothing to do here since this has no direct bindings.
   }
 
   @Override
@@ -136,23 +143,16 @@ final class SendableBinding extends DashboardData implements NTSendableBuilder {
   @Override
   public void addBooleanProperty(String key, BooleanSupplier getter, BooleanConsumer setter) {
     BooleanTopic booleanTopic = TABLE.getBooleanTopic(String.join("/", topic, key));
-    Optional<BooleanPublisher> publisher = Optional.empty();
+    Function<BooleanTopic, BooleanPublisher> toPublisher = t -> t.publish();
     Optional<Consumer<BooleanPublisher>> publishUpdates = Optional.empty();
-    Optional<BooleanSubscriber> subscriber = Optional.empty();
+    BiFunction<BooleanTopic, PubSubOption[], BooleanSubscriber> toSubscriber = (t, options) -> t.subscribe(false, options);
     Optional<Consumer<BooleanSubscriber>> updateSubscriber = Optional.empty();
 
     if (getter != null) {
-      publisher = Optional.of(booleanTopic.publish());
       publishUpdates = Optional.of((pub) -> pub.set(getter.getAsBoolean()));
     }
 
     if (setter != null) {
-      var options =
-          publisher
-              .map(p -> new PubSubOption[] {PubSubOption.excludePublisher(p)})
-              .orElse(NO_OPTIONS);
-
-      subscriber = Optional.of(booleanTopic.subscribe(false, options));
       updateSubscriber =
           Optional.of(
               (sub) -> {
@@ -162,7 +162,7 @@ final class SendableBinding extends DashboardData implements NTSendableBuilder {
               });
     }
 
-    bind(new DataBinding<>(publisher, publishUpdates, subscriber, updateSubscriber));
+    bind(new DataBinding<>(booleanTopic, toPublisher, publishUpdates, toSubscriber, updateSubscriber));
   }
 
   @Override
