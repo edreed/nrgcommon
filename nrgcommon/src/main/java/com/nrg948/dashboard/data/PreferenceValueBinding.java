@@ -79,6 +79,16 @@ final class PreferenceValueBinding extends DashboardData implements PreferenceVa
   }
 
   @Override
+  public void enable() {
+    // TODO: Enable preferences bindings.
+  }
+
+  @Override
+  public void disable() {
+    // TODO: Disable preferences bindings.
+  }
+
+  @Override
   protected void update() {
     // Updates are handled by the individual bindings.
   }
