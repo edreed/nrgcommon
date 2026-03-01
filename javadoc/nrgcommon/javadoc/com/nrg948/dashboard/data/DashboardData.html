@@ -413,7 +413,9 @@ E extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="DashboardData.html" title="class in com.nrg948.dashboard.data">DashboardData</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#bindInvalid()" class="member-name-link">bindInvalid</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Returns a no-op binding used when a dashboard binding cannot be created.</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;T&gt;&nbsp;<a href="DashboardData.html" title="class in com.nrg948.dashboard.data">DashboardData</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#bindLayout(java.lang.String,T,java.util.function.BiFunction)" class="member-name-link">bindLayout</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;topic,
  T&nbsp;container,
@@ -2072,6 +2074,15 @@ E extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/
 <section class="detail" id="bindInvalid()">
 <h3>bindInvalid</h3>
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="DashboardData.html" title="class in com.nrg948.dashboard.data">DashboardData</a></span>&nbsp;<span class="element-name">bindInvalid</span>()</div>
+<div class="block">Returns a no-op binding used when a dashboard binding cannot be created.
+
+ <p>This is typically called from generated binding code when a binding definition is invalid or
+ otherwise cannot be bound. The returned <a href="DashboardData.html" title="class in com.nrg948.dashboard.data"><code>DashboardData</code></a> instance performs no actions when
+ enabled, disabled, updated, or closed.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>a shared, no-op <a href="DashboardData.html" title="class in com.nrg948.dashboard.data"><code>DashboardData</code></a> instance</dd>
+</dl>
 </section>
 </li>
 </ul>
