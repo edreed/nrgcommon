@@ -307,6 +307,11 @@ public final class TalonFXAdapter implements MotorController {
               talonFX.getDeviceID(), status.getDescription(), status.getName()),
           false);
     }
+
+    throw new RuntimeException(
+        String.format(
+            "Failed to apply motor output configs of TalonFX ID %d after 5 attempts.",
+            talonFX.getDeviceID()));
   }
 
   /**
