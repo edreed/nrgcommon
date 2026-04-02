@@ -64,6 +64,10 @@ public final class TalonFXAdapter implements MotorController {
   private final DoubleLogEntry logStatorCurrent;
   private final DoubleLogEntry logTemperature;
 
+  private TalonFXEncoderAdapter encoderAdapter;
+  private TalonFXLimitSwitchAdapter<ForwardLimitValue> forwardLimitSwitchAdapter;
+  private TalonFXLimitSwitchAdapter<ReverseLimitValue> reverseLimitSwitchAdapter;
+
   /**
    * Converts a {@link MotorIdleMode} to the corresponding {@link NeutralModeValue} for TalonFX.
    *
@@ -254,19 +258,32 @@ public final class TalonFXAdapter implements MotorController {
 
   @Override
   public RelativeEncoder getEncoder() {
-    return new TalonFXEncoderAdapter(talonFX, distancePerRotation);
+    if (encoderAdapter == null) {
+      encoderAdapter = new TalonFXEncoderAdapter(talonFX, distancePerRotation);
+    }
+
+    return encoderAdapter;
   }
 
   @Override
   public LimitSwitch getForwardLimitSwitch() {
-    return new TalonFXLimitSwitchAdapter<ForwardLimitValue>(
-        talonFX.getForwardLimit(), ForwardLimitValue.ClosedToGround);
+    if (forwardLimitSwitchAdapter == null) {
+      forwardLimitSwitchAdapter =
+          new TalonFXLimitSwitchAdapter<ForwardLimitValue>(
+              talonFX.getForwardLimit(), ForwardLimitValue.ClosedToGround);
+    }
+
+    return forwardLimitSwitchAdapter;
   }
 
   @Override
   public LimitSwitch getReverseLimitSwitch() {
-    return new TalonFXLimitSwitchAdapter<ReverseLimitValue>(
-        talonFX.getReverseLimit(), ReverseLimitValue.ClosedToGround);
+    if (reverseLimitSwitchAdapter == null) {
+      reverseLimitSwitchAdapter =
+          new TalonFXLimitSwitchAdapter<ReverseLimitValue>(
+              talonFX.getReverseLimit(), ReverseLimitValue.ClosedToGround);
+    }
+    return reverseLimitSwitchAdapter;
   }
 
   @Override

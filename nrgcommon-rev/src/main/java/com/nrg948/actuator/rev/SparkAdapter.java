@@ -72,6 +72,10 @@ abstract class SparkAdapter implements MotorController {
   private final DoubleLogEntry logOutputCurrent;
   private final DoubleLogEntry logTemperature;
 
+  private SparkEncoderAdapter encoderAdapter;
+  private SparkLimitSwitchAdapter forwardLimitSwitchAdapter;
+  private SparkLimitSwitchAdapter reverseLimitSwitchAdapter;
+
   /**
    * Converts a {@link MotorIdleMode} to the corresponding Spark-specific {@link IdleMode}.
    *
@@ -236,17 +240,26 @@ abstract class SparkAdapter implements MotorController {
 
   @Override
   public RelativeEncoder getEncoder() {
-    return new SparkEncoderAdapter(spark.get().getEncoder());
+    if (encoderAdapter == null) {
+      encoderAdapter = new SparkEncoderAdapter(spark.get().getEncoder());
+    }
+    return encoderAdapter;
   }
 
   @Override
   public LimitSwitch getForwardLimitSwitch() {
-    return new SparkLimitSwitchAdapter(spark.get().getForwardLimitSwitch());
+    if (forwardLimitSwitchAdapter == null) {
+      forwardLimitSwitchAdapter = new SparkLimitSwitchAdapter(spark.get().getForwardLimitSwitch());
+    }
+    return forwardLimitSwitchAdapter;
   }
 
   @Override
   public LimitSwitch getReverseLimitSwitch() {
-    return new SparkLimitSwitchAdapter(spark.get().getReverseLimitSwitch());
+    if (reverseLimitSwitchAdapter == null) {
+      reverseLimitSwitchAdapter = new SparkLimitSwitchAdapter(spark.get().getReverseLimitSwitch());
+    }
+    return reverseLimitSwitchAdapter;
   }
 
   @Override
