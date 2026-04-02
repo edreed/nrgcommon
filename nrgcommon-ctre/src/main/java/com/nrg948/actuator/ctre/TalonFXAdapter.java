@@ -27,7 +27,9 @@ import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.ForwardLimitValue;
@@ -293,7 +295,18 @@ public final class TalonFXAdapter implements MotorController {
     logTemperature.append(this.temperature.refresh().getValueAsDouble());
   }
 
-  private static void applyConfig(TalonFX talonFX, MotorOutputConfigs motorOutputConfigs) {
+  /** {@return the current motor output configurations} */
+  public MotorOutputConfigs getMotorOutputConfigs() {
+    return motorOutputConfigs;
+  }
+
+  /**
+   * Applies the given motor output configuration to the TalonFX with up to 5 retries.
+   *
+   * @param talonFX The {@link TalonFX} to apply the configuration to.
+   * @param motorOutputConfigs The {@link MotorOutputConfigs} to apply to the TalonFX.
+   */
+  public static void applyConfig(TalonFX talonFX, MotorOutputConfigs motorOutputConfigs) {
     for (int i = 0; i < 5; i++) {
       StatusCode status = talonFX.getConfigurator().apply(motorOutputConfigs);
 
@@ -315,15 +328,79 @@ public final class TalonFXAdapter implements MotorController {
   }
 
   /**
+   * Applies the given motor output configuration to the TalonFX with up to 5 retries.
+   *
+   * <p>This is a convenience method that applies the configuration to the TalonFX instance of this
+   * adapter.
+   *
+   * @param motorOutputConfigs The {@link MotorOutputConfigs} to apply to the TalonFX.
+   */
+  public void applyConfig(MotorOutputConfigs motorOutputConfigs) {
+    applyConfig(talonFX, motorOutputConfigs);
+  }
+
+  /**
+   * Applies a full TalonFX configuration with up to 5 retries.
+   *
+   * @param talonFX The {@link TalonFX} to apply the configuration to.
+   * @param config The {@link TalonFXConfiguration} to apply to the TalonFX.
+   */
+  public static void applyConfig(TalonFX talonFX, TalonFXConfiguration config) {
+    for (int i = 0; i < 5; i++) {
+      StatusCode status = talonFX.getConfigurator().apply(config);
+
+      if (status.isOK()) {
+        return;
+      }
+
+      System.out.println(
+          String.format(
+              "ERROR: Failed to apply TalonFX config to ID %d: %s (%s)",
+              talonFX.getDeviceID(), status.getDescription(), status.getName()));
+    }
+
+    throw new RuntimeException(
+        String.format(
+            "Failed to apply TalonFX configs to ID %d after 5 attempts.", talonFX.getDeviceID()));
+  }
+
+  /**
+   * Applies a full TalonFX configuration with up to 5 retries.
+   *
+   * <p>This is a convenience method that applies the configuration to the TalonFX instance of this
+   * adapter.
+   *
+   * @param config The {@link TalonFXConfiguration} to apply to the TalonFX.
+   */
+  public void applyConfig(TalonFXConfiguration config) {
+    applyConfig(talonFX, config);
+  }
+
+  /**
    * Sets the MotionMagic voltage
    *
+   * <p>MotionMagic is a control mode that uses a trapezoidal motion profile to move the motor to a
+   * target position. The voltage parameter is used to set the maximum voltage that can be applied
+   * to the motor during the motion profile. The actual voltage applied to the motor will be
+   * determined by the motion profile and the current position of the motor.
+   *
    * @param voltage The voltage to set the motor to using MotionMagic control mode.
-   *     <p>MotionMagic is a control mode that uses a trapezoidal motion profile to move the motor
-   *     to a target position. The voltage parameter is used to set the maximum voltage that can be
-   *     applied to the motor during the motion profile. The actual voltage applied to the motor
-   *     will be determined by the motion profile and the current position of the motor.
    */
   public void setControl(MotionMagicVoltage voltage) {
     talonFX.setControl(voltage);
+  }
+
+  /**
+   * Sets the MotionMagic velocity.
+   *
+   * <p>MotionMagic is a control mode that uses a trapezoidal motion profile to accelerate the motor
+   * to a target velocity. The velocity parameter is used to set the target velocity for the motion
+   * profile. The actual voltage applied to the motor will be determined by the motion profile and
+   * the current velocity of the motor.
+   *
+   * @param velocity The velocity to set the motor to using MotionMagic control mode.
+   */
+  public void setControl(MotionMagicVelocityVoltage velocity) {
+    talonFX.setControl(velocity);
   }
 }
