@@ -53,9 +53,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 public final class TalonFXAdapter implements MotorController {
   private static final DataLog LOG = DataLogManager.getLog();
 
-  @SuppressWarnings("unused")
-  private final String logPrefix;
-
   private final TalonFX talonFX;
   private final double distancePerRotation;
   private final MotorOutputConfigs motorOutputConfigs;
@@ -113,7 +110,6 @@ public final class TalonFXAdapter implements MotorController {
       TalonFX talonFX,
       MotorOutputConfigs motorOutputConfigs,
       double distancePerRotation) {
-    this.logPrefix = logPrefix;
     this.talonFX = talonFX;
     this.motorOutputConfigs = motorOutputConfigs;
     this.distancePerRotation = distancePerRotation;

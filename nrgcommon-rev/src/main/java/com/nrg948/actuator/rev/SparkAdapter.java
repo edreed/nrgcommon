@@ -67,9 +67,6 @@ abstract class SparkAdapter implements MotorController {
 
   private static final DataLog LOG = DataLogManager.getLog();
 
-  @SuppressWarnings("unused")
-  private final String logPrefix;
-
   private final Accessor spark;
 
   private final DoubleLogEntry logOutputCurrent;
@@ -103,7 +100,6 @@ abstract class SparkAdapter implements MotorController {
    * @param spark The SparkMax object to adapt.
    */
   protected SparkAdapter(String logPrefix, String deviceName, Accessor spark) {
-    this.logPrefix = logPrefix;
     this.spark = spark;
 
     String name = String.format("%s/%s-%d", logPrefix, deviceName, spark.get().getDeviceId());
