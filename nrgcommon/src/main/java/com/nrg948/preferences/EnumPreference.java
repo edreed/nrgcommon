@@ -23,11 +23,15 @@
 */
 package com.nrg948.preferences;
 
-import edu.wpi.first.wpilibj.Preferences;
 import java.util.Map;
 import java.util.Optional;
+import org.wpilib.preferences.Preferences;
 
-/** A class representing an enum value in the preferences store. */
+/**
+ * A class representing an enum value in the preferences store.
+ *
+ * @param <E> The enum type.
+ */
 public final class EnumPreference<E extends Enum<E>> extends PreferenceValue {
 
   private final E defaultValue;

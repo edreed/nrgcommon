@@ -23,7 +23,7 @@
 */
 package com.nrg948.util;
 
-import edu.wpi.first.wpilibj.util.Color8Bit;
+import org.wpilib.util.Color8Bit;
 
 /** Enum representing common colors with their corresponding {@link Color8Bit} values. */
 public enum Colors {

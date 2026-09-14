@@ -25,7 +25,7 @@ package com.nrg948.dashboard.model;
 
 import static com.nrg948.util.ColorUtil.stringToColor;
 
-import edu.wpi.first.wpilibj.util.Color8Bit;
+import org.wpilib.util.Color8Bit;
 
 /**
  * Represents a dashboard element that displays a boolean value with customizable colors and icons.

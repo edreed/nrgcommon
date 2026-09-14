@@ -27,8 +27,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nrg948.util.ReflectionUtil;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj2.command.Command;
 import io.arxila.javatuples.LabelValue;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -38,6 +36,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Stream;
+import org.wpilib.command2.Command;
+import org.wpilib.tunable.Selectable;
 
 /** A class containing utility methods to support autonomous operation. */
 public final class Autonomous {
@@ -59,6 +59,7 @@ public final class Autonomous {
    * @param generators An array of fully qualified method names of static methods annotated with
    *     {@link AutonomousCommandGenerator}.
    */
+  @SuppressWarnings("null")
   @JsonCreator
   Autonomous(
       @JsonProperty(value = "commands", required = true) String[] commands,
@@ -117,6 +118,7 @@ public final class Autonomous {
    * @return An {@link Optional} containing the {@link Method} object if found; otherwise, {@link
    *     Optional#empty()}.
    */
+  @SuppressWarnings("null")
   private static Optional<Method> getMethod(String qualifiedMethodName) {
     try {
       int paramStart = qualifiedMethodName.indexOf('(');
@@ -149,11 +151,11 @@ public final class Autonomous {
 
   /**
    * Returns a {@link AutonomousCommandFactory} implementation used to create a {@link Command} to
-   * add to the {@link SendableChooser}.
+   * add to the {@link Selectable}.
    *
    * @param commandClass The {@link Class} object of the {@link Command} created by this instance.
    * @return A {@link AutonomousCommandFactory} implementation used to create a {@link Command} to
-   *     add to the {@link SendableChooser}.
+   *     add to the {@link Selectable}.
    */
   private static AutonomousCommandFactory toCommandFactory(Class<?> commandClass) {
     AutonomousCommand annotation = commandClass.getAnnotation(AutonomousCommand.class);
@@ -203,12 +205,12 @@ public final class Autonomous {
 
   /**
    * Returns a {@link AutonomousCommandFactory} implementation used to create a {@link Command} to
-   * add to the {@link SendableChooser}.
+   * add to the {@link Selectable}.
    *
    * @param commandMethod The {@link Method} object invoked to create the {@link Command} of this
    *     instance.
    * @return A {@link AutonomousCommandFactory} implementation used to create a {@link Command} to
-   *     add to the {@link SendableChooser}.
+   *     add to the {@link Selectable}.
    */
   private static AutonomousCommandFactory toCommandFactory(Method commandMethod) {
     AutonomousCommandMethod annotation = commandMethod.getAnnotation(AutonomousCommandMethod.class);
@@ -261,12 +263,12 @@ public final class Autonomous {
 
   /**
    * Returns a {@link Stream} of {@link AutonomousCommandFactory} implementations used to create
-   * {@link Command} objects to add to the {@link SendableChooser}.
+   * {@link Command} objects to add to the {@link Selectable}.
    *
    * @param commandGenerator The {@link Method} object invoked to create the {@link Command}
    *     objects.
    * @return A {@link Stream} of {@link AutonomousCommandFactory} implementations used to create
-   *     {@link Command} objects to add to the {@link SendableChooser}.
+   *     {@link Command} objects to add to the {@link Selectable}.
    */
   private static Stream<AutonomousCommandFactory> generateCommands(
       Method commandGenerator, Object... args) {
@@ -274,8 +276,6 @@ public final class Autonomous {
 
     try {
       Object rawCommands = commandGenerator.invoke(null, args);
-
-      // TODO: Validate collection type.
 
       @SuppressWarnings("unchecked")
       Collection<LabelValue<String, Command>> commands =
@@ -364,17 +364,17 @@ public final class Autonomous {
   }
 
   /**
-   * Returns a {@link SendableChooser} object enabling interactive selection of autonomous commands
+   * Returns a {@link Selectable} object enabling interactive selection of autonomous commands
    * annotated with {@link AutonomousCommand}.
    *
    * @param args A list of objects passed to the constructor of the autonomous commands providing
    *     access to the robot subsystems. This is typically an instance of <code>RobotContainer
    *     </code> but could be another type that manages the subsystems or the list of subsystems
    *     themselves. All commands must accept the same types and number of arguments.
-   * @return A {@link SendableChooser} object containing the autonomous commands.
+   * @return A {@link Selectable} object containing the autonomous commands.
    */
-  public static SendableChooser<Command> getChooser(Object... args) {
-    SendableChooser<Command> chooser = new SendableChooser<>();
+  public static Selectable<Command> getChooser(Object... args) {
+    Selectable<Command> chooser = new Selectable<>();
 
     var my = getInstance();
     var commandClasses = Arrays.stream(my.commands).map(Autonomous::toCommandFactory);
@@ -388,10 +388,10 @@ public final class Autonomous {
             f -> {
               var command = f.newCommand(args);
 
-              chooser.addOption(f.getName(), command);
+              chooser.add(f.getName(), command);
 
               if (f.isDefault()) {
-                chooser.setDefaultOption(f.getName(), command);
+                chooser.addDefault(f.getName(), command);
               }
             });
 

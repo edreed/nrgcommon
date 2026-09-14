@@ -26,8 +26,8 @@ package com.nrg948.dashboard.annotations;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 
-import edu.wpi.first.wpilibj2.command.Subsystem;
 import java.lang.annotation.Target;
+import org.wpilib.command2.Subsystem;
 
 /**
  * Annotation for a subsystem widget on the dashboard.

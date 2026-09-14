@@ -23,7 +23,7 @@
 */
 package com.nrg948.preferences;
 
-import edu.wpi.first.wpilibj.Preferences;
+import org.wpilib.preferences.Preferences;
 
 /** A class representing a Boolean value in the preferences store. */
 public final class BooleanPreference extends PreferenceValue {

@@ -23,8 +23,8 @@
 */
 package com.nrg948.preferences;
 
-import edu.wpi.first.wpilibj.Preferences;
 import java.util.ArrayList;
+import org.wpilib.preferences.Preferences;
 
 /** An abstract base class represented a keyed valued in the preferences store. */
 public abstract class PreferenceValue {

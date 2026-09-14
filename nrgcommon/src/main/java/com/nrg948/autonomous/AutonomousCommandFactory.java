@@ -23,21 +23,21 @@
 */
 package com.nrg948.autonomous;
 
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj2.command.Command;
+import org.wpilib.command2.Command;
+import org.wpilib.tunable.Selectable;
 
-/** An interface for creating autonomous commands to add to the {@link SendableChooser}. */
+/** An interface for creating autonomous commands to add to the {@link Selectable}. */
 interface AutonomousCommandFactory extends Comparable<AutonomousCommandFactory> {
   /**
-   * The name to display for the annotated {@link Command} in the {@link SendableChooser} returned
-   * by {@link Autonomous#getChooser(Object...)}.
+   * The name to display for the annotated {@link Command} in the {@link Selectable} returned by
+   * {@link Autonomous#getChooser(Object...)}.
    *
    * @return The display name.
    */
   String getName();
 
   /**
-   * Whether this command is the default {@link Command} in the {@link SendableChooser} returned by
+   * Whether this command is the default {@link Command} in the {@link Selectable} returned by
    * {@link Autonomous#getChooser(Object...)}.
    *
    * @return Returns true if this is the default command, and false otherwise.
@@ -45,14 +45,14 @@ interface AutonomousCommandFactory extends Comparable<AutonomousCommandFactory> 
   boolean isDefault();
 
   /**
-   * Returns an instance of the {@link Command} to add to the {@link SendableChooser}.
+   * Returns an instance of the {@link Command} to add to the {@link Selectable}.
    *
    * @param args A list of objects passed to the constructor of the autonomous commands providing
    *     access to the robot subsystems. This is typically a single parameter of type <code>
    *     RobotContainer
    *     </code> but may be another type managing access to the subsystems or the list of subsystems
    *     themselves. All commands must accept the same types and number of arguments.
-   * @return The {@link Command} to add to the {@link SendableChooser}.
+   * @return The {@link Command} to add to the {@link Selectable}.
    */
   Command newCommand(Object... args);
 

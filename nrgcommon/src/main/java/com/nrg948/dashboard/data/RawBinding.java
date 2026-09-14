@@ -23,22 +23,14 @@
 */
 package com.nrg948.dashboard.data;
 
-import edu.wpi.first.networktables.PubSubOption;
-import edu.wpi.first.networktables.RawPublisher;
-import edu.wpi.first.networktables.RawSubscriber;
-import edu.wpi.first.networktables.RawTopic;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import org.wpilib.tunable.TunableConfig;
 
 /** A data binding that binds a byte array publisher and/or subscriber to dashboard data updates. */
-final class RawBinding extends DataBinding<RawPublisher, RawSubscriber> {
+final class RawBinding extends ObjectBinding<byte[]> {
   private static final byte[] DEFAULT_VALUE = new byte[0];
-
-  private final RawTopic topic;
-  private final String typeString;
-  private final Optional<Supplier<byte[]>> supplier;
-  private final Optional<Consumer<byte[]>> consumer;
 
   /**
    * Creates a new RawBinding with the given topic and supplier.
@@ -48,8 +40,14 @@ final class RawBinding extends DataBinding<RawPublisher, RawSubscriber> {
    * @param supplier The supplier to use for publishing updates, or null if no publisher is needed
    *     for this binding.
    */
-  public RawBinding(RawTopic topic, String typeString, Supplier<byte[]> supplier) {
-    this(topic, typeString, supplier, null);
+  public RawBinding(String topic, String typeString, Supplier<byte[]> supplier) {
+    super(
+        topic,
+        Optional.ofNullable(supplier),
+        Optional.empty(),
+        byte[].class,
+        DEFAULT_VALUE,
+        new TunableConfig().withTypeString(typeString));
   }
 
   /**
@@ -63,32 +61,13 @@ final class RawBinding extends DataBinding<RawPublisher, RawSubscriber> {
    *     needed for this binding.
    */
   public RawBinding(
-      RawTopic topic, String typeString, Supplier<byte[]> supplier, Consumer<byte[]> consumer) {
-    this.topic = topic;
-    this.typeString = typeString;
-    this.supplier = Optional.ofNullable(supplier);
-    this.consumer = Optional.ofNullable(consumer);
-  }
-
-  @Override
-  protected Optional<RawPublisher> newPublisher() {
-    return supplier.map(s -> topic.publish(typeString));
-  }
-
-  @Override
-  protected Optional<RawSubscriber> newSubscriber(PubSubOption... options) {
-    return consumer.map(c -> topic.subscribe(typeString, DEFAULT_VALUE, options));
-  }
-
-  @Override
-  protected void publishUpdates(RawPublisher publisher) {
-    publisher.set(supplier.get().get());
-  }
-
-  @Override
-  protected void updateSubscriber(RawSubscriber subscriber) {
-    for (var value : subscriber.readQueueValues()) {
-      consumer.get().accept(value);
-    }
+      String topic, String typeString, Supplier<byte[]> supplier, Consumer<byte[]> consumer) {
+    super(
+        topic,
+        Optional.ofNullable(supplier),
+        Optional.ofNullable(consumer),
+        byte[].class,
+        DEFAULT_VALUE,
+        new TunableConfig().withTypeString(typeString));
   }
 }

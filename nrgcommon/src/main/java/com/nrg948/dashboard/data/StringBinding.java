@@ -23,21 +23,15 @@
 */
 package com.nrg948.dashboard.data;
 
-import edu.wpi.first.networktables.PubSubOption;
-import edu.wpi.first.networktables.StringPublisher;
-import edu.wpi.first.networktables.StringSubscriber;
-import edu.wpi.first.networktables.StringTopic;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/** A data binding that binds a string publisher and/or subscriber to dashboard data updates. */
-final class StringBinding extends DataBinding<StringPublisher, StringSubscriber> {
+/**
+ * A data binding that binds a string array publisher and/or subscriber to dashboard data updates.
+ */
+final class StringBinding extends ObjectBinding<String> {
   private static final String DEFAULT_VALUE = "";
-
-  private final StringTopic topic;
-  private final Optional<Supplier<String>> supplier;
-  private final Optional<Consumer<String>> consumer;
 
   /**
    * Creates a new StringBinding with the given topic and supplier.
@@ -46,8 +40,8 @@ final class StringBinding extends DataBinding<StringPublisher, StringSubscriber>
    * @param supplier The supplier to use for publishing updates, or null if no publisher is needed
    *     for this binding.
    */
-  public StringBinding(StringTopic topic, Supplier<String> supplier) {
-    this(topic, supplier, null);
+  public StringBinding(String topic, Supplier<String> supplier) {
+    super(topic, Optional.ofNullable(supplier), Optional.empty(), String.class, DEFAULT_VALUE);
   }
 
   /**
@@ -59,31 +53,12 @@ final class StringBinding extends DataBinding<StringPublisher, StringSubscriber>
    * @param consumer The consumer to use for updating the subscriber, or null if no subscriber is
    *     needed for this binding.
    */
-  public StringBinding(StringTopic topic, Supplier<String> supplier, Consumer<String> consumer) {
-    this.topic = topic;
-    this.supplier = Optional.ofNullable(supplier);
-    this.consumer = Optional.ofNullable(consumer);
-  }
-
-  @Override
-  protected Optional<StringPublisher> newPublisher() {
-    return supplier.map(s -> topic.publish());
-  }
-
-  @Override
-  protected Optional<StringSubscriber> newSubscriber(PubSubOption... options) {
-    return consumer.map(c -> topic.subscribe(DEFAULT_VALUE, options));
-  }
-
-  @Override
-  protected void publishUpdates(StringPublisher publisher) {
-    publisher.set(supplier.get().get());
-  }
-
-  @Override
-  protected void updateSubscriber(StringSubscriber subscriber) {
-    for (var value : subscriber.readQueueValues()) {
-      consumer.get().accept(value);
-    }
+  public StringBinding(String topic, Supplier<String> supplier, Consumer<String> consumer) {
+    super(
+        topic,
+        Optional.ofNullable(supplier),
+        Optional.ofNullable(consumer),
+        String.class,
+        DEFAULT_VALUE);
   }
 }

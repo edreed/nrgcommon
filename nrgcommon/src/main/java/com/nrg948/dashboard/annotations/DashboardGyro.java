@@ -26,17 +26,15 @@ package com.nrg948.dashboard.annotations;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 
-import edu.wpi.first.util.sendable.Sendable;
-import edu.wpi.first.wpilibj.ADXRS450_Gyro;
-import edu.wpi.first.wpilibj.AnalogGyro;
 import java.lang.annotation.Target;
+import org.wpilib.hardware.imu.OnboardIMU;
+import org.wpilib.tunable.ComplexTunable;
 
 /**
  * Annotation for a gyro widget on the dashboard.
  *
- * <p>This annotation can be applied to fields or methods that return an {@link AnalogGyro} or
- * {@link ADXRS450_Gyro} object or any {@link Sendable} object that publishes data in the same
- * format.
+ * <p>This annotation can be applied to fields or methods that return an {@link OnboardIMU} object
+ * or any {@link ComplexTunable} object that publishes data in the same format.
  */
 @Target({FIELD, METHOD})
 public @interface DashboardGyro {

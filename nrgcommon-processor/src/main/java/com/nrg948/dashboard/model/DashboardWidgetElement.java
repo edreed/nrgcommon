@@ -40,16 +40,23 @@ public abstract class DashboardWidgetElement extends DashboardElementBase {
 
   /** {@return the topic of the dashboard widget element} */
   public String getTopic() {
-    String topic = "/";
+    String topic = "";
     var parentOpt = getParent();
 
     while (true) {
       if (parentOpt.isEmpty()) {
-        return topic + getTitle().replace("/", "+");
+        return String.join("/", "/Tunables", topic, getTitle().replace("/", "+"));
       }
-      var parent = parentOpt.get();
-      topic = "/" + parent.getTitle().replace("/", "+") + topic;
-      parentOpt = parent.getParent();
+
+      var parentTitle = parentOpt.get().getTitle().replace("/", "+");
+
+      if (topic.isEmpty()) {
+        topic = parentTitle;
+      } else {
+        topic = String.join("/", parentTitle, topic);
+      }
+
+      parentOpt = parentOpt.get().getParent();
     }
   }
 

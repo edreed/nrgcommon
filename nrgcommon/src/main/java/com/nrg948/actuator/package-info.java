@@ -18,10 +18,10 @@
  * Each module provides a set of adapters and utilities specific to the manufacturer's hardware.
  *
  * <p>To use a motor controller adapter, include the appropriate manufacturer-specific module as a
- * dependency in your project. You can then use the {@link Motors#newController(String, int)} method
- * to create a new motor controller of the desired type. To configure the motor, you can use the
- * {@code apply()} methods provided by the adapter or call the {@link Motors#newController(String,
- * int, MotorConfig, MotorCurrentConfig)} method to apply basic and electrical current
- * configurations.
+ * dependency in your project. You can then use the {@link Motors#newController(String, CANPort,
+ * int)} method to create a new motor controller of the desired type. To configure the motor, you
+ * can use the {@code apply()} methods provided by the adapter or call the {@link
+ * Motors#newController(String, CANPort, int, MotorConfig, MotorCurrentConfig)} method to apply
+ * basic and electrical current configurations.
  */
 package com.nrg948.actuator;

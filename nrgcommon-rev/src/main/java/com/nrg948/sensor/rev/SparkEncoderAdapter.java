@@ -28,29 +28,32 @@ import com.nrg948.sensor.RelativeEncoder;
 /** A relative encoder implementation based on the REV Robotics Spark motor controllers. */
 public final class SparkEncoderAdapter implements RelativeEncoder {
   private final com.revrobotics.RelativeEncoder encoder;
+  private final double distancePerRotation;
 
   /**
    * Constructs a SparkEncoderAdapter.
    *
    * @param encoder The REV Robotics RelativeEncoder to adapt.
+   * @param distancePerRotation The distance per rotation for the encoder.
    */
-  public SparkEncoderAdapter(com.revrobotics.RelativeEncoder encoder) {
+  public SparkEncoderAdapter(com.revrobotics.RelativeEncoder encoder, double distancePerRotation) {
     this.encoder = encoder;
+    this.distancePerRotation = distancePerRotation;
   }
 
   @Override
   public void setPosition(double position) {
-    encoder.setPosition(position);
+    encoder.setPosition(position / distancePerRotation);
   }
 
   @Override
   public double getPosition() {
-    return encoder.getPosition();
+    return encoder.getPosition().get() * distancePerRotation;
   }
 
   @Override
   public double getVelocity() {
-    return encoder.getVelocity();
+    return (encoder.getVelocity().get() * distancePerRotation) / 60.0; // Convert from RPM to RPS
   }
 
   @Override

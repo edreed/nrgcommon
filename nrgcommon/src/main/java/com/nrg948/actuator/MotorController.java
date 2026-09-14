@@ -27,7 +27,7 @@ import com.nrg948.sensor.LimitSwitch;
 import com.nrg948.sensor.RelativeEncoder;
 
 /** An interface for a motor controller. */
-public interface MotorController extends edu.wpi.first.wpilibj.motorcontrol.MotorController {
+public interface MotorController extends org.wpilib.hardware.motor.MotorController {
   /**
    * Creates a new motor controller that is configured to follow this motor controller.
    *

@@ -23,12 +23,16 @@
 */
 package com.nrg948.preferences;
 
-import edu.wpi.first.math.MathSharedStore;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.util.sendable.Sendable;
-import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.Preferences;
+import org.wpilib.math.controller.ProfiledPIDController;
+import org.wpilib.math.trajectory.TrapezoidProfile;
+import org.wpilib.math.util.MathSharedStore;
+import org.wpilib.preferences.Preferences;
+import org.wpilib.telemetry.TelemetryLoggable;
+import org.wpilib.telemetry.TelemetryTable;
+import org.wpilib.tunable.ComplexTunable;
+import org.wpilib.tunable.TunableConfig;
+import org.wpilib.tunable.TunableOption;
+import org.wpilib.tunable.TunableTable;
 
 /**
  * Manages a {@link ProfiledPIDController} whose gains are stored in WPILib {@link Preferences}.
@@ -38,10 +42,11 @@ import edu.wpi.first.wpilibj.Preferences;
  * <p>The internal {@link ProfiledPIDController} instance is configured using the stored preference
  * values, allowing this class to be used anywhere a regular {@code ProfiledPIDController} would be
  * used, while automatically persisting and retrieving gains from the robot preferences. In
- * addition, it implements {@link Sendable} so that its parameters can be exposed to dashboards and
- * other tools.
+ * addition, it implements {@link ComplexTunable} so that its parameters can be exposed to
+ * dashboards and other tools.
  */
-public class ProfiledPIDControllerPreference extends PreferenceValue implements Sendable {
+public class ProfiledPIDControllerPreference extends PreferenceValue
+    implements TelemetryLoggable, ComplexTunable {
   private static final double DEFAULT_PERIOD = 0.02;
 
   private final double defaultP;
@@ -382,26 +387,52 @@ public class ProfiledPIDControllerPreference extends PreferenceValue implements 
   }
 
   @Override
-  public void initSendable(SendableBuilder builder) {
-    builder.setSmartDashboardType("PIDController");
-    builder.addDoubleProperty("p", this::getP, this::setP);
-    builder.addDoubleProperty("i", this::getI, this::setI);
-    builder.addDoubleProperty("d", this::getD, this::setD);
-    builder.addDoubleProperty(
+  public String getTelemetryType() {
+    return "ProfiledPIDController";
+  }
+
+  @Override
+  public void logTo(TelemetryTable table) {
+    controller.logTo(table);
+  }
+
+  @Override
+  public void publishTunable(TunableTable table) {
+    var getOnChange = TunableConfig.of(TunableOption.GET_ON_CHANGE);
+    var controllerTable = table.getTable("controller");
+
+    controllerTable.publishDouble("p", this::getP, this::setP, getOnChange);
+    controllerTable.publishDouble("i", this::getI, this::setI, getOnChange);
+    controllerTable.publishDouble("d", this::getD, this::setD, getOnChange);
+    controllerTable.publishDouble(
         "izone",
-        controller::getIZone,
-        (double toSet) -> {
+        this::getIZone,
+        v -> {
           try {
-            controller.setIZone(toSet);
+            setIZone(v);
           } catch (IllegalArgumentException e) {
-            MathSharedStore.reportError("IZone must be a non-negative number!", e.getStackTrace());
+            MathSharedStore.reportError(
+                "IZone must be a non-negative number: " + e.getMessage(), e.getStackTrace());
           }
-        });
-    builder.addDoubleProperty("setpoint", () -> controller.getSetpoint().position, null);
-    builder.addDoubleProperty("measurement", () -> 0, null);
-    builder.addDoubleProperty("error", controller::getPositionError, null);
-    builder.addDoubleProperty("error derivative", controller::getVelocityError, null);
-    builder.addDoubleProperty("previous error", () -> 0, null);
-    builder.addDoubleProperty("total error", controller::getAccumulatedError, null);
+        },
+        getOnChange);
+    controllerTable.publishDouble(
+        "setpoint",
+        () -> getSetpoint().position,
+        (s) -> {},
+        TunableConfig.of(TunableOption.GET_ON_CHANGE, TunableOption.IMMUTABLE));
+
+    table.publishValue(
+        "constraints",
+        () -> controller.getConstraints(),
+        v -> controller.setConstraints(v),
+        TrapezoidProfile.Constraints.class,
+        getOnChange);
+
+    table.publishDouble(
+        "goal",
+        () -> controller.getGoal().position,
+        g -> controller.setGoal(new TrapezoidProfile.State(g, 0)),
+        getOnChange);
   }
 }

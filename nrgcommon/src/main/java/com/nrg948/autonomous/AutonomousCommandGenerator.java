@@ -23,14 +23,14 @@
 */
 package com.nrg948.autonomous;
 
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj2.command.Command;
 import io.arxila.javatuples.LabelValue;
 import java.util.Collection;
+import org.wpilib.command2.Command;
+import org.wpilib.tunable.Selectable;
 
 /**
  * Annotates a method that creates a {@link Collection} of {@link LabelValue} elements mapping the
- * name to display in user interface elements like {@link SendableChooser} to a {@link Command}.
+ * name to display in user interface elements like {@link Selectable} to a {@link Command}.
  *
  * <p>The method must conform to the following prototype:
  *

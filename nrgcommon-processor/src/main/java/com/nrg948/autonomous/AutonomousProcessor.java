@@ -25,7 +25,7 @@ package com.nrg948.autonomous;
 
 import static com.nrg948.autonomous.Autonomous.CONFIGURATION_RESOURCE_NAME;
 import static com.nrg948.processor.ProcessorUtil.asTypeElement;
-import static javax.lang.model.SourceVersion.RELEASE_17;
+import static javax.lang.model.SourceVersion.RELEASE_25;
 import static javax.tools.Diagnostic.Kind.ERROR;
 import static javax.tools.StandardLocation.CLASS_OUTPUT;
 
@@ -52,10 +52,13 @@ import javax.lang.model.util.SimpleElementVisitor14;
   "com.nrg948.autonomous.AutonomousCommandMethod",
   "com.nrg948.autonomous.AutonomousCommandGenerator"
 })
-@SupportedSourceVersion(RELEASE_17)
+@SupportedSourceVersion(RELEASE_25)
 @AutoService(Processor.class)
 public class AutonomousProcessor extends AbstractProcessor {
   private final JsonFactory jsonFactory = new JsonFactory();
+
+  /** Constructs a new {@code AutonomousProcessor}. */
+  public AutonomousProcessor() {}
 
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -68,6 +71,7 @@ public class AutonomousProcessor extends AbstractProcessor {
       var autonomousMethods = roundEnv.getElementsAnnotatedWith(AutonomousCommandMethod.class);
       var autonomousGenerators =
           roundEnv.getElementsAnnotatedWith(AutonomousCommandGenerator.class);
+      @SuppressWarnings("null")
       var allElements =
           Stream.of(autonomousCommands, autonomousMethods, autonomousGenerators)
               .flatMap(Set::stream)
@@ -130,6 +134,7 @@ public class AutonomousProcessor extends AbstractProcessor {
           public Optional<IOException> visitExecutable(
               ExecutableElement executableElement, Void unused) {
             try {
+              @SuppressWarnings("null")
               var enclosingTypeName =
                   asTypeElement(executableElement.getEnclosingElement())
                       .map(TypeElement::getQualifiedName)

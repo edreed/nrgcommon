@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 /** A container binding that holds multiple child bindings. */
-abstract class ContainerBinding extends DashboardData {
+abstract class ContainerBinding extends DataBinding {
   private ArrayList<DashboardData> childBindings = new ArrayList<>();
 
   /**
@@ -61,30 +61,16 @@ abstract class ContainerBinding extends DashboardData {
   }
 
   @Override
-  public void enable() {
+  protected void enableSelf() {
     for (var childBinding : childBindings) {
       childBinding.enable();
     }
   }
 
   @Override
-  public void disable() {
+  protected void disableSelf() {
     for (var childBinding : childBindings) {
       childBinding.disable();
-    }
-  }
-
-  @Override
-  public void update() {
-    for (var childBinding : childBindings) {
-      childBinding.update();
-    }
-  }
-
-  @Override
-  public void close() {
-    for (var childBinding : childBindings) {
-      childBinding.close();
     }
   }
 }

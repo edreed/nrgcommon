@@ -28,14 +28,14 @@ import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 
 import com.nrg948.dashboard.model.RotationUnit;
-import edu.wpi.first.util.sendable.Sendable;
 import java.lang.annotation.Target;
+import org.wpilib.tunable.ComplexTunable;
 
 /**
  * Annotation for a swerve drive widget on the dashboard.
  *
- * <p>This annotation can be applied to fields or methods that return a {@link Sendable} object that
- * publishes data in the format described in <a
+ * <p>This annotation can be applied to fields or methods that return a {@link ComplexTunable}
+ * object that publishes data in the format described in <a
  * href="https://frc-elastic.gitbook.io/docs/additional-features-and-references/custom-widget-examples#swervedrive">Custom
  * Widget Examples / Swerve Drive</a>.
  */
