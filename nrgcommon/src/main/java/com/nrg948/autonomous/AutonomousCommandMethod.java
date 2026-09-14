@@ -23,12 +23,12 @@
 */
 package com.nrg948.autonomous;
 
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj2.command.Command;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.wpilib.command2.Command;
+import org.wpilib.tunable.Selectable;
 
 /**
  * Annotates a method that creates a new subclass of {@link Command} to run during autonomous.
@@ -51,7 +51,7 @@ import java.lang.annotation.Target;
 public @interface AutonomousCommandMethod {
   /**
    * The name to display for the annotated method returning a {@link Command} in the {@link
-   * SendableChooser} returned by {@link Autonomous#getChooser(Object...)}.
+   * Selectable} returned by {@link Autonomous#getChooser(Object...)}.
    *
    * @return The display name.
    */
@@ -59,7 +59,7 @@ public @interface AutonomousCommandMethod {
 
   /**
    * Whether this command returned by the method is the default {@link Command} in the {@link
-   * SendableChooser} returned by {@link Autonomous#getChooser(Object...)}.
+   * Selectable} returned by {@link Autonomous#getChooser(Object...)}.
    *
    * @return Returns true if this is the default command, and false otherwise.
    */

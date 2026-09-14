@@ -23,61 +23,28 @@
 */
 package com.nrg948.dashboard.data;
 
-import edu.wpi.first.networktables.PubSubOption;
-import edu.wpi.first.networktables.Publisher;
-import edu.wpi.first.networktables.Subscriber;
-import java.util.Optional;
-
 /**
  * An abstract base class for data bindings that bind a publisher and/or subscriber to dashboard
  * data updates.
- *
- * @param <P> The type of the publisher.
- * @param <S> The type of the subscriber.
  */
-abstract class DataBinding<P extends Publisher, S extends Subscriber> extends DashboardData {
-  private static final PubSubOption[] NO_OPTIONS = new PubSubOption[0];
-
-  private Optional<P> publisher = Optional.empty();
-  private Optional<S> subscriber = Optional.empty();
+abstract class DataBinding extends DashboardData {
   private int enabledCount = 0;
 
   /**
-   * Creates a new publisher for this binding.
+   * Enables the dashboard data binding.
    *
-   * @return An optional containing the new publisher, or empty if no publisher is needed for this
-   *     binding.
+   * <p>This method is called by the {@link DashboardData#enable()} method when the binding is first
+   * enabled. It is guaranteed only to be called if the binding was previously disabled.
    */
-  protected abstract Optional<P> newPublisher();
+  protected abstract void enableSelf();
 
   /**
-   * Creates a new subscriber for this binding with the given options.
+   * Disables the dashboard data binding.
    *
-   * @param options The options to use when creating the subscriber.
-   * @return An optional containing the new subscriber, or empty if no subscriber is needed for this
-   *     binding.
+   * <p>This method is called by the {@link DashboardData#disable()} method when the binding is
+   * disabled. It is guaranteed only to be called if the binding was previously enabled.
    */
-  protected abstract Optional<S> newSubscriber(PubSubOption... options);
-
-  /**
-   * Publishes updates to the dashboard using the given publisher.
-   *
-   * <p>This method will only be called if a publisher is present for this binding, and will be
-   * called on every update cycle while the binding is enabled.
-   *
-   * @param publisher The publisher to use for publishing updates.
-   */
-  protected abstract void publishUpdates(P publisher);
-
-  /**
-   * Updates the subscriber with the latest data from the dashboard.
-   *
-   * <p>This method will only be called if a subscriber is present for this binding, and will be
-   * called on every update cycle while the binding is enabled.
-   *
-   * @param subscriber The subscriber to update.
-   */
-  protected abstract void updateSubscriber(S subscriber);
+  protected abstract void disableSelf();
 
   @Override
   public void enable() {
@@ -85,14 +52,7 @@ abstract class DataBinding<P extends Publisher, S extends Subscriber> extends Da
       return;
     }
 
-    publisher = newPublisher();
-
-    var options =
-        publisher
-            .map(p -> new PubSubOption[] {PubSubOption.excludePublisher(p)})
-            .orElse(NO_OPTIONS);
-
-    subscriber = newSubscriber(options);
+    enableSelf();
   }
 
   @Override
@@ -103,21 +63,7 @@ abstract class DataBinding<P extends Publisher, S extends Subscriber> extends Da
     }
 
     if (--enabledCount == 0) {
-      close(); // Close resources if there are no more active enables.
+      disableSelf();
     }
-  }
-
-  @Override
-  protected void update() {
-    subscriber.ifPresent(this::updateSubscriber);
-    publisher.ifPresent(this::publishUpdates);
-  }
-
-  @Override
-  public void close() {
-    publisher.ifPresent(Publisher::close);
-    subscriber.ifPresent(Subscriber::close);
-    publisher = Optional.empty();
-    subscriber = Optional.empty();
   }
 }

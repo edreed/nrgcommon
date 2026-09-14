@@ -23,10 +23,6 @@
 */
 package com.nrg948.dashboard.data;
 
-import edu.wpi.first.networktables.FloatArrayPublisher;
-import edu.wpi.first.networktables.FloatArraySubscriber;
-import edu.wpi.first.networktables.FloatArrayTopic;
-import edu.wpi.first.networktables.PubSubOption;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -34,12 +30,8 @@ import java.util.function.Supplier;
 /**
  * A data binding that binds a float array publisher and/or subscriber to dashboard data updates.
  */
-final class FloatArrayBinding extends DataBinding<FloatArrayPublisher, FloatArraySubscriber> {
+final class FloatArrayBinding extends ObjectBinding<float[]> {
   private static final float[] DEFAULT_VALUE = new float[0];
-
-  private final FloatArrayTopic topic;
-  private final Optional<Supplier<float[]>> supplier;
-  private final Optional<Consumer<float[]>> consumer;
 
   /**
    * Creates a new FloatArrayBinding with the given topic and supplier.
@@ -48,8 +40,8 @@ final class FloatArrayBinding extends DataBinding<FloatArrayPublisher, FloatArra
    * @param supplier The supplier to use for publishing updates, or null if no publisher is needed
    *     for this binding.
    */
-  public FloatArrayBinding(FloatArrayTopic topic, Supplier<float[]> supplier) {
-    this(topic, supplier, null);
+  public FloatArrayBinding(String topic, Supplier<float[]> supplier) {
+    super(topic, Optional.ofNullable(supplier), Optional.empty(), float[].class, DEFAULT_VALUE);
   }
 
   /**
@@ -61,32 +53,12 @@ final class FloatArrayBinding extends DataBinding<FloatArrayPublisher, FloatArra
    * @param consumer The consumer to use for updating the subscriber, or null if no subscriber is
    *     needed for this binding.
    */
-  public FloatArrayBinding(
-      FloatArrayTopic topic, Supplier<float[]> supplier, Consumer<float[]> consumer) {
-    this.topic = topic;
-    this.supplier = Optional.ofNullable(supplier);
-    this.consumer = Optional.ofNullable(consumer);
-  }
-
-  @Override
-  protected Optional<FloatArrayPublisher> newPublisher() {
-    return supplier.map(s -> topic.publish());
-  }
-
-  @Override
-  protected Optional<FloatArraySubscriber> newSubscriber(PubSubOption... options) {
-    return consumer.map(c -> topic.subscribe(DEFAULT_VALUE, options));
-  }
-
-  @Override
-  protected void publishUpdates(FloatArrayPublisher publisher) {
-    publisher.set(supplier.get().get());
-  }
-
-  @Override
-  protected void updateSubscriber(FloatArraySubscriber subscriber) {
-    for (var value : subscriber.readQueueValues()) {
-      consumer.get().accept(value);
-    }
+  public FloatArrayBinding(String topic, Supplier<float[]> supplier, Consumer<float[]> consumer) {
+    super(
+        topic,
+        Optional.ofNullable(supplier),
+        Optional.ofNullable(consumer),
+        float[].class,
+        DEFAULT_VALUE);
   }
 }

@@ -26,7 +26,11 @@ package com.nrg948.util.enums;
 import java.util.Map;
 import java.util.Optional;
 
-/** Interface providing selection methods for enums. */
+/**
+ * Interface providing selection methods for enums.
+ *
+ * @param <E> The type of the enum.
+ */
 public interface SelectorEnum<E extends Enum<E>> {
   /**
    * Selects a value from the provided options map based on the enum instance.

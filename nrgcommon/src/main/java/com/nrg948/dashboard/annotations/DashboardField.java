@@ -27,8 +27,8 @@ import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 
 import com.nrg948.dashboard.model.GameField;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import java.lang.annotation.Target;
+import org.wpilib.smartdashboard.Field2d;
 
 /**
  * Annotation for a field widget on the dashboard.

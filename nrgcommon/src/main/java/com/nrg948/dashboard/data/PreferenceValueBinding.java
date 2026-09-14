@@ -48,6 +48,7 @@ final class PreferenceValueBinding extends ContainerBinding implements Preferenc
     preferenceValue.accept(this);
   }
 
+  @SuppressWarnings("null")
   @Override
   public void visit(StringPreference stringPreference) {
     addChild(
@@ -55,6 +56,7 @@ final class PreferenceValueBinding extends ContainerBinding implements Preferenc
             topic, stringPreference, StringPreference::getValue, StringPreference::setValue));
   }
 
+  @SuppressWarnings("null")
   @Override
   public void visit(BooleanPreference booleanPreference) {
     addChild(
@@ -62,11 +64,13 @@ final class PreferenceValueBinding extends ContainerBinding implements Preferenc
             topic, booleanPreference, BooleanPreference::getValue, BooleanPreference::setValue));
   }
 
+  @SuppressWarnings("null")
   @Override
   public void visit(DoublePreference value) {
     addChild(bindDouble(topic, value, DoublePreference::getValue, DoublePreference::setValue));
   }
 
+  @SuppressWarnings("null")
   @Override
   public <E extends Enum<E>> void visit(EnumPreference<E> enumPreference) {
     addChild(bindEnum(topic, enumPreference, EnumPreference::getValue, EnumPreference::setValue));
@@ -74,11 +78,11 @@ final class PreferenceValueBinding extends ContainerBinding implements Preferenc
 
   @Override
   public void visit(PIDControllerPreference pidControllerPreference) {
-    addChild(bindSendable(topic, pidControllerPreference));
+    addChild(bindTunable(topic, pidControllerPreference));
   }
 
   @Override
   public void visit(ProfiledPIDControllerPreference pidControllerPreference) {
-    addChild(bindSendable(topic, pidControllerPreference));
+    addChild(bindTunable(topic, pidControllerPreference));
   }
 }

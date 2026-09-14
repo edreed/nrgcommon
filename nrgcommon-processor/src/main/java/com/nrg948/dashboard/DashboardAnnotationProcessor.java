@@ -30,6 +30,7 @@ import static javax.tools.Diagnostic.Kind.ERROR;
 
 import com.google.auto.service.AutoService;
 import com.nrg948.dashboard.annotations.Dashboard;
+import com.nrg948.dashboard.annotations.DashboardAlerts;
 import com.nrg948.dashboard.annotations.DashboardDefinition;
 import com.nrg948.dashboard.annotations.DashboardTab;
 import com.nrg948.dashboard.model.DashboardElement;
@@ -39,9 +40,6 @@ import com.nrg948.dashboard.model.DataBinding;
 import com.nrg948.preferences.PreferenceValue;
 import com.nrg948.processor.ProcessorUtil;
 import com.nrg948.util.ReflectionUtil;
-import edu.wpi.first.cscore.HttpCamera;
-import edu.wpi.first.util.sendable.Sendable;
-import edu.wpi.first.wpilibj.Alert;
 import io.arxila.javatuples.Pair;
 import java.io.IOException;
 import java.io.Writer;
@@ -78,6 +76,9 @@ import javax.lang.model.util.SimpleAnnotationValueVisitor14;
 import javax.lang.model.util.SimpleElementVisitor14;
 import javax.lang.model.util.SimpleTypeVisitor14;
 import javax.tools.StandardLocation;
+import org.wpilib.tunable.ComplexTunable;
+import org.wpilib.util.Alert;
+import org.wpilib.vision.camera.HttpCamera;
 
 /** Annotation processor for dashboard-related annotations. */
 @SupportedAnnotationTypes("com.nrg948.dashboard.annotations.*")
@@ -98,9 +99,9 @@ public final class DashboardAnnotationProcessor extends AbstractProcessor {
 
   private static final String OPTIONAL_QUALIFIED_NAME = "java.util.Optional";
   private static final String STRING_QUALIFIED_NAME = "java.lang.String";
-  private static final String HTTP_CAMERA_QUALIFIED_NAME = "edu.wpi.first.cscore.HttpCamera";
-  private static final String SENDABLE_QUALIFIED_NAME = "edu.wpi.first.util.sendable.Sendable";
-  private static final String ALERT_QUALIFIED_NAME = "edu.wpi.first.wpilibj.Alert";
+  private static final String HTTP_CAMERA_QUALIFIED_NAME = "org.wpilib.vision.camera.HttpCamera";
+  private static final String COMPLEX_TUNABLE_QUALIFIED_NAME = "org.wpilib.tunable.ComplexTunable";
+  private static final String ALERT_QUALIFIED_NAME = "org.wpilib.wpilibj.Alert";
   private static final String PREFERENCE_VALUE_QUALIFIED_NAME =
       "com.nrg948.preferences.PreferenceValue";
 
@@ -123,11 +124,14 @@ public final class DashboardAnnotationProcessor extends AbstractProcessor {
   private TypeMirror optionalType;
   private TypeMirror stringType;
   private TypeMirror httpCameraType;
-  private TypeMirror sendableType;
+  private TypeMirror complexTunableType;
   private TypeMirror alertType;
   private TypeMirror preferenceValueType;
 
   private Set<TypeMirror> readWriteDashboardAnnotations;
+
+  /** Constructs a new {@code DashboardAnnotationProcessor}. */
+  public DashboardAnnotationProcessor() {}
 
   @Override
   public synchronized void init(ProcessingEnvironment processingEnv) {
@@ -145,7 +149,7 @@ public final class DashboardAnnotationProcessor extends AbstractProcessor {
     optionalType = typeUtils.erasure(elementUtils.getTypeElement(OPTIONAL_QUALIFIED_NAME).asType());
     stringType = elementUtils.getTypeElement(STRING_QUALIFIED_NAME).asType();
     httpCameraType = elementUtils.getTypeElement(HTTP_CAMERA_QUALIFIED_NAME).asType();
-    sendableType = elementUtils.getTypeElement(SENDABLE_QUALIFIED_NAME).asType();
+    complexTunableType = elementUtils.getTypeElement(COMPLEX_TUNABLE_QUALIFIED_NAME).asType();
     alertType = elementUtils.getTypeElement(ALERT_QUALIFIED_NAME).asType();
     preferenceValueType = elementUtils.getTypeElement(PREFERENCE_VALUE_QUALIFIED_NAME).asType();
 
@@ -181,6 +185,7 @@ public final class DashboardAnnotationProcessor extends AbstractProcessor {
    *
    * @param definitions Stream of elements annotated with {@link DashboardDefinition}.
    */
+  @SuppressWarnings("null")
   private void processDefinitions(Stream<? extends Element> definitions) {
     definitions
         .map(ProcessorUtil::asTypeElement)
@@ -303,6 +308,7 @@ public final class DashboardAnnotationProcessor extends AbstractProcessor {
    * @param tabs Stream of elements annotated with {@link DashboardTab} that provide access to the
    *     objects containing the tabs' elements.
    */
+  @SuppressWarnings("null")
   private void processTabs(Stream<? extends Element> tabs) {
     tabs.map(DashboardAnnotationProcessor::asAnnotatedElement)
         .filter(Optional::isPresent)
@@ -467,7 +473,7 @@ public final class DashboardAnnotationProcessor extends AbstractProcessor {
           if (isOptional(tabType)) {
             writer.write("Optional");
           }
-          writer.write("Tab(\"");
+          writer.write("Tab(\"/Dashboard/");
           writer.write(getElementTitle(tabElement.element));
           if (isStatic(tabElement.element)) {
             writer.write("\", com.nrg948.util.ReflectionUtil.getStatic(");
@@ -516,6 +522,7 @@ public final class DashboardAnnotationProcessor extends AbstractProcessor {
    * @param dashboardElements Stream of elements annotated with {@link Dashboard}.
    */
   private void processDashboard(Stream<? extends Element> dashboardElements) {
+    @SuppressWarnings("null")
     var dashboardElementOpt =
         dashboardElements
             .map(ProcessorUtil::asTypeElement)
@@ -612,6 +619,7 @@ public final class DashboardAnnotationProcessor extends AbstractProcessor {
       tabTitle = tabElement.getSimpleName().toString();
     }
 
+    @SuppressWarnings("null")
     var tabModes =
         Arrays.stream((Object[]) getAnnotationValue(tabValues.get("modes")))
             .map(Object::toString)
@@ -677,6 +685,7 @@ public final class DashboardAnnotationProcessor extends AbstractProcessor {
       var argValues =
           Stream.concat(getAnnotationValues(annotatedElement), Arrays.stream(additionalArgs))
               .toArray(Object[]::new);
+      @SuppressWarnings("null")
       var argClasses =
           Arrays.stream(argValues)
               .map(Object::getClass)
@@ -1089,8 +1098,8 @@ public final class DashboardAnnotationProcessor extends AbstractProcessor {
                   writer.write(element.getSimpleName().toString());
                   writer.write("Handle, container)),\n");
                 }
-              } else if (isSendable(declaredType)) {
-                writer.write("Sendable(parentKey + \"/");
+              } else if (isComplexTunable(declaredType)) {
+                writer.write("ComplexTunable(parentKey + \"/");
                 writer.write(getElementTitle(element, annotation));
 
                 if (isStatic) {
@@ -1201,6 +1210,7 @@ public final class DashboardAnnotationProcessor extends AbstractProcessor {
    * @param annotatedElement The annotated element.
    * @return A stream of annotation values in the order defined in the annotation's definition.
    */
+  @SuppressWarnings("null")
   private Stream<Object> getAnnotationValues(AnnotatedElement annotatedElement) {
     var annotationValues =
         processingEnv.getElementUtils().getElementValuesWithDefaults(annotatedElement.annotation);
@@ -1280,6 +1290,7 @@ public final class DashboardAnnotationProcessor extends AbstractProcessor {
    * @return The list of annotated elements.
    */
   private List<AnnotatedElement> getDefinitionElements(TypeElement containerElement) {
+    @SuppressWarnings("null")
     var dashboardElements =
         containerElement.getEnclosedElements().stream()
             .map(DashboardAnnotationProcessor::asAnnotatedElement)
@@ -1509,13 +1520,13 @@ public final class DashboardAnnotationProcessor extends AbstractProcessor {
   }
 
   /**
-   * Determines if a declared type is a {@link Sendable}.
+   * Determines if a declared type is a {@link ComplexTunable}.
    *
    * @param type The declared type to check.
-   * @return True if the declared type is a type of Sendable, false otherwise.
+   * @return True if the declared type is a type of ComplexTunable, false otherwise.
    */
-  private boolean isSendable(DeclaredType type) {
-    return processingEnv.getTypeUtils().isAssignable(type, sendableType);
+  private boolean isComplexTunable(DeclaredType type) {
+    return processingEnv.getTypeUtils().isAssignable(type, complexTunableType);
   }
 
   /**

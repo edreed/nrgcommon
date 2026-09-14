@@ -26,15 +26,15 @@ package com.nrg948.dashboard.annotations;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 
-import edu.wpi.first.util.sendable.Sendable;
-import edu.wpi.first.wpilibj.AnalogAccelerometer;
 import java.lang.annotation.Target;
+import org.wpilib.hardware.accelerometer.AnalogAccelerometer;
+import org.wpilib.tunable.ComplexTunable;
 
 /**
  * Annotation for an accelerometer widget on the dashboard.
  *
  * <p>This annotation can be applied to fields or methods that return an {@link AnalogAccelerometer}
- * object or any {@link Sendable} that publishes data in the same format.
+ * object or any {@link ComplexTunable} that publishes data in the same format.
  */
 @Target({FIELD, METHOD})
 public @interface DashboardAccelerometer {

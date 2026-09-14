@@ -23,8 +23,8 @@
 */
 package com.nrg948.util;
 
-import edu.wpi.first.wpilibj.util.Color;
-import edu.wpi.first.wpilibj.util.Color8Bit;
+import org.wpilib.util.Color;
+import org.wpilib.util.Color8Bit;
 
 /** Utility class for color conversions and manipulations. */
 public final class ColorUtil {

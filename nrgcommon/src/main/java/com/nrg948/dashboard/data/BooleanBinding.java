@@ -23,21 +23,24 @@
 */
 package com.nrg948.dashboard.data;
 
-import edu.wpi.first.networktables.BooleanPublisher;
-import edu.wpi.first.networktables.BooleanSubscriber;
-import edu.wpi.first.networktables.BooleanTopic;
-import edu.wpi.first.networktables.PubSubOption;
-import edu.wpi.first.util.function.BooleanConsumer;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
+import org.wpilib.tunable.TunableBoolean;
+import org.wpilib.tunable.TunableConfig;
+import org.wpilib.tunable.Tunables;
+import org.wpilib.util.function.BooleanConsumer;
 
 /** A data binding that binds a boolean publisher and/or subscriber to dashboard data updates. */
-final class BooleanBinding extends DataBinding<BooleanPublisher, BooleanSubscriber> {
+final class BooleanBinding extends DataBinding {
   private static final boolean DEFAULT_VALUE = false;
 
-  private final BooleanTopic topic;
-  private final Optional<BooleanSupplier> supplier;
-  private final Optional<BooleanConsumer> consumer;
+  private final String topic;
+  private final BooleanSupplier supplier;
+  private final BooleanConsumer consumer;
+  private final TunableConfig config;
+
+  @SuppressWarnings("unused")
+  private Optional<TunableBoolean> tunable = Optional.empty();
 
   /**
    * Creates a new BooleanBinding with the given topic and supplier.
@@ -46,7 +49,7 @@ final class BooleanBinding extends DataBinding<BooleanPublisher, BooleanSubscrib
    * @param supplier The supplier to use for publishing updates, or null if no publisher is needed
    *     for this binding.
    */
-  public BooleanBinding(BooleanTopic topic, BooleanSupplier supplier) {
+  public BooleanBinding(String topic, BooleanSupplier supplier) {
     this(topic, supplier, null);
   }
 
@@ -59,31 +62,38 @@ final class BooleanBinding extends DataBinding<BooleanPublisher, BooleanSubscrib
    * @param consumer The consumer to use for updating the subscriber, or null if no subscriber is
    *     needed for this binding.
    */
-  public BooleanBinding(BooleanTopic topic, BooleanSupplier supplier, BooleanConsumer consumer) {
+  public BooleanBinding(String topic, BooleanSupplier supplier, BooleanConsumer consumer) {
+    this(topic, Optional.ofNullable(supplier), Optional.ofNullable(consumer));
+  }
+
+  /**
+   * Creates a new BooleanBinding with the given topic, supplier, and consumer.
+   *
+   * @param topic The topic to bind to.
+   * @param supplier The supplier to use for publishing updates, or {@link Optional#empty()} if no
+   *     publisher is needed for this binding.
+   * @param consumer The consumer to use for updating the subscriber, or {@link Optional#empty()} if
+   *     no subscriber is needed for this binding.
+   */
+  public BooleanBinding(
+      String topic, Optional<BooleanSupplier> supplier, Optional<BooleanConsumer> consumer) {
     this.topic = topic;
-    this.supplier = Optional.ofNullable(supplier);
-    this.consumer = Optional.ofNullable(consumer);
+    this.supplier = supplier.orElse(() -> DEFAULT_VALUE);
+    this.consumer = consumer.orElse((v) -> {});
+    this.config =
+        new TunableConfig()
+            .withMutable(consumer.isEmpty())
+            .withPolling(TunableConfig.Polling.ALWAYS_GET);
   }
 
   @Override
-  protected Optional<BooleanPublisher> newPublisher() {
-    return supplier.map(s -> topic.publish());
+  protected void enableSelf() {
+    tunable = Optional.of(Tunables.publishBoolean(topic, supplier, consumer, config));
   }
 
   @Override
-  protected Optional<BooleanSubscriber> newSubscriber(PubSubOption... options) {
-    return consumer.map(c -> topic.subscribe(DEFAULT_VALUE, options));
-  }
-
-  @Override
-  protected void publishUpdates(BooleanPublisher publisher) {
-    publisher.set(supplier.get().getAsBoolean());
-  }
-
-  @Override
-  protected void updateSubscriber(BooleanSubscriber subscriber) {
-    for (var value : subscriber.readQueueValues()) {
-      consumer.get().accept(value);
-    }
+  protected void disableSelf() {
+    Tunables.remove(topic);
+    tunable = Optional.empty();
   }
 }

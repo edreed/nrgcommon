@@ -34,7 +34,7 @@ public class DashboardElement extends DashboardElementContainer {
    * @param tabModels the tabs contained in the dashboard
    */
   public DashboardElement(int gridSize, DashboardTabElement[] tabModels) {
-    super("SmartDashboard", -1, -1, -1, -1, tabModels);
+    super("Dashboard", -1, -1, -1, -1, tabModels);
     this.gridSize = gridSize;
   }
 

@@ -26,8 +26,8 @@ package com.nrg948.dashboard.annotations;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 
-import edu.wpi.first.wpilibj.PowerDistribution;
 import java.lang.annotation.Target;
+import org.wpilib.hardware.power.PowerDistribution;
 
 /**
  * Annotation for a power distribution widget on the dashboard.

@@ -23,54 +23,33 @@
 */
 package com.nrg948.dashboard.data;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import org.wpilib.tunable.ComplexTunable;
+import org.wpilib.tunable.Tunable;
+import org.wpilib.tunable.Tunables;
 
-/** A container binding that holds multiple child bindings. */
-abstract class ContainerBinding extends DataBinding {
-  private ArrayList<DashboardData> childBindings = new ArrayList<>();
-
-  /**
-   * Constructs a ContainerBinding with the given child bindings.
-   *
-   * @param childBindings The child bindings to add to this container.
-   */
-  public ContainerBinding(DashboardData... childBindings) {
-    this.childBindings.addAll(
-        Arrays.stream(childBindings)
-            .peek(
-                c -> {
-                  if (c == null) {
-                    throw new IllegalArgumentException("Child binding cannot be null");
-                  }
-                })
-            .toList());
-  }
+/** A binding that binds a {@link Tunable} to dashboard data updates. */
+final class ComplexTunableBinding extends DataBinding {
+  private final String topic;
+  private final ComplexTunable tunable;
 
   /**
-   * Adds a child binding to this container.
+   * Constructs a TunableBinding with the given topic and Tunable.
    *
-   * @param childBinding The child binding to add.
+   * @param topic The topic to bind the Tunable to.
+   * @param tunable The Tunable to bind.
    */
-  protected void addChild(DashboardData childBinding) {
-    if (childBinding == null) {
-      throw new IllegalArgumentException("Child binding cannot be null");
-    }
-
-    childBindings.add(childBinding);
+  ComplexTunableBinding(String topic, ComplexTunable tunable) {
+    this.topic = topic;
+    this.tunable = tunable;
   }
 
   @Override
   protected void enableSelf() {
-    for (var childBinding : childBindings) {
-      childBinding.enable();
-    }
+    Tunables.publish(topic, tunable);
   }
 
   @Override
   protected void disableSelf() {
-    for (var childBinding : childBindings) {
-      childBinding.disable();
-    }
+    Tunables.remove(topic);
   }
 }

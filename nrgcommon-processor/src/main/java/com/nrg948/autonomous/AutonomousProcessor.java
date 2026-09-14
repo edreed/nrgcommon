@@ -57,6 +57,9 @@ import javax.lang.model.util.SimpleElementVisitor14;
 public class AutonomousProcessor extends AbstractProcessor {
   private final JsonFactory jsonFactory = new JsonFactory();
 
+  /** Constructs a new {@code AutonomousProcessor}. */
+  public AutonomousProcessor() {}
+
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
     try {
@@ -68,6 +71,7 @@ public class AutonomousProcessor extends AbstractProcessor {
       var autonomousMethods = roundEnv.getElementsAnnotatedWith(AutonomousCommandMethod.class);
       var autonomousGenerators =
           roundEnv.getElementsAnnotatedWith(AutonomousCommandGenerator.class);
+      @SuppressWarnings("null")
       var allElements =
           Stream.of(autonomousCommands, autonomousMethods, autonomousGenerators)
               .flatMap(Set::stream)
@@ -130,6 +134,7 @@ public class AutonomousProcessor extends AbstractProcessor {
           public Optional<IOException> visitExecutable(
               ExecutableElement executableElement, Void unused) {
             try {
+              @SuppressWarnings("null")
               var enclosingTypeName =
                   asTypeElement(executableElement.getEnclosingElement())
                       .map(TypeElement::getQualifiedName)

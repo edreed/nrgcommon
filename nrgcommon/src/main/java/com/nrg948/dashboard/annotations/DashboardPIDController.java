@@ -26,8 +26,8 @@ package com.nrg948.dashboard.annotations;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 
-import edu.wpi.first.math.controller.PIDController;
 import java.lang.annotation.Target;
+import org.wpilib.math.controller.PIDController;
 
 /**
  * Annotation for a PID controller widget on the dashboard.

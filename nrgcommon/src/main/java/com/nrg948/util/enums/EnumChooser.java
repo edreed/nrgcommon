@@ -23,38 +23,38 @@
 */
 package com.nrg948.util.enums;
 
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import org.wpilib.tunable.Selectable;
 
-/** Utility class for creating SendableChoosers from enum types. */
+/** Utility class for creating Selectables from enum types. */
 public final class EnumChooser {
   /**
-   * Creates a SendableChooser with the specified default value.
+   * Creates a Selectable with the specified default value.
    *
    * @param defaultValue The default value for the chooser.
    * @param <E> The type of the enum.
-   * @return A SendableChooser with the specified default value.
+   * @return A Selectable with the specified default value.
    */
-  public static <E extends Enum<E>> SendableChooser<E> fromDefault(E defaultValue) {
-    SendableChooser<E> chooser = new SendableChooser<>();
+  public static <E extends Enum<E>> Selectable<E> fromDefault(E defaultValue) {
+    Selectable<E> chooser = new Selectable<>();
 
     for (E value : defaultValue.getDeclaringClass().getEnumConstants()) {
-      chooser.addOption(value.toString(), value);
+      chooser.add(value.toString(), value);
     }
 
-    chooser.setDefaultOption(defaultValue.toString(), defaultValue);
+    chooser.addDefault(defaultValue.toString(), defaultValue);
 
     return chooser;
   }
 
   /**
-   * Creates a SendableChooser from the specified enum class, using the first enum constant as the
+   * Creates a Selectable from the specified enum class, using the first enum constant as the
    * default value.
    *
    * @param enumClass The enum class.
    * @param <E> The type of the enum.
-   * @return A SendableChooser with the first enum constant as the default value.
+   * @return A Selectable with the first enum constant as the default value.
    */
-  public static <E extends Enum<E>> SendableChooser<E> fromClass(Class<E> enumClass) {
+  public static <E extends Enum<E>> Selectable<E> fromClass(Class<E> enumClass) {
     return fromDefault(enumClass.getEnumConstants()[0]);
   }
 

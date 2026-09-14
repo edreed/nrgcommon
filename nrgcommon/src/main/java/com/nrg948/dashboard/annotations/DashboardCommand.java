@@ -26,8 +26,8 @@ package com.nrg948.dashboard.annotations;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 
-import edu.wpi.first.wpilibj2.command.Command;
 import java.lang.annotation.Target;
+import org.wpilib.command2.Command;
 
 /**
  * Annotation for a command button widget on the dashboard.
