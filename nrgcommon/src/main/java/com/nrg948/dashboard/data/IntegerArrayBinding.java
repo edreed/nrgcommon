@@ -23,21 +23,15 @@
 */
 package com.nrg948.dashboard.data;
 
-import edu.wpi.first.networktables.IntegerArrayPublisher;
-import edu.wpi.first.networktables.IntegerArraySubscriber;
-import edu.wpi.first.networktables.IntegerArrayTopic;
-import edu.wpi.first.networktables.PubSubOption;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/** A data binding that binds a long array publisher and/or subscriber to dashboard data updates. */
-final class IntegerArrayBinding extends DataBinding<IntegerArrayPublisher, IntegerArraySubscriber> {
-  private static final long[] DEFAULT_VALUE = new long[0];
-
-  private final IntegerArrayTopic topic;
-  private final Optional<Supplier<long[]>> supplier;
-  private final Optional<Consumer<long[]>> consumer;
+/**
+ * A data binding that binds a boolean array publisher and/or subscriber to dashboard data updates.
+ */
+final class IntegerArrayBinding extends ObjectBinding<int[]> {
+  private static final int[] DEFAULT_VALUE = new int[0];
 
   /**
    * Creates a new IntegerArrayBinding with the given topic and supplier.
@@ -46,8 +40,8 @@ final class IntegerArrayBinding extends DataBinding<IntegerArrayPublisher, Integ
    * @param supplier The supplier to use for publishing updates, or null if no publisher is needed
    *     for this binding.
    */
-  public IntegerArrayBinding(IntegerArrayTopic topic, Supplier<long[]> supplier) {
-    this(topic, supplier, null);
+  public IntegerArrayBinding(String topic, Supplier<int[]> supplier) {
+    super(topic, Optional.ofNullable(supplier), Optional.empty(), int[].class, DEFAULT_VALUE);
   }
 
   /**
@@ -59,32 +53,12 @@ final class IntegerArrayBinding extends DataBinding<IntegerArrayPublisher, Integ
    * @param consumer The consumer to use for updating the subscriber, or null if no subscriber is
    *     needed for this binding.
    */
-  public IntegerArrayBinding(
-      IntegerArrayTopic topic, Supplier<long[]> supplier, Consumer<long[]> consumer) {
-    this.topic = topic;
-    this.supplier = Optional.ofNullable(supplier);
-    this.consumer = Optional.ofNullable(consumer);
-  }
-
-  @Override
-  protected Optional<IntegerArrayPublisher> newPublisher() {
-    return supplier.map(s -> topic.publish());
-  }
-
-  @Override
-  protected Optional<IntegerArraySubscriber> newSubscriber(PubSubOption... options) {
-    return consumer.map(c -> topic.subscribe(DEFAULT_VALUE, options));
-  }
-
-  @Override
-  protected void publishUpdates(IntegerArrayPublisher publisher) {
-    publisher.set(supplier.get().get());
-  }
-
-  @Override
-  protected void updateSubscriber(IntegerArraySubscriber subscriber) {
-    for (var value : subscriber.readQueueValues()) {
-      consumer.get().accept(value);
-    }
+  public IntegerArrayBinding(String topic, Supplier<int[]> supplier, Consumer<int[]> consumer) {
+    super(
+        topic,
+        Optional.ofNullable(supplier),
+        Optional.ofNullable(consumer),
+        int[].class,
+        DEFAULT_VALUE);
   }
 }

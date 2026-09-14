@@ -26,15 +26,15 @@ package com.nrg948.dashboard.annotations;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 
-import edu.wpi.first.util.sendable.Sendable;
-import edu.wpi.first.wpilibj.Ultrasonic;
 import java.lang.annotation.Target;
+import org.wpilib.hardware.range.SharpIR;
+import org.wpilib.tunable.ComplexTunable;
 
 /**
  * Annotation for a ultrasonic widget on the dashboard.
  *
- * <p>This annotation can be applied to fields or methods that return an {@link Ultrasonic} object
- * or {@link Sendable} object that publishes data in the same format.
+ * <p>This annotation can be applied to fields or methods that return an {@link SharpIR} object or
+ * {@link ComplexTunable} object that publishes data in the same format.
  */
 @Target({FIELD, METHOD})
 public @interface DashboardUltrasonic {

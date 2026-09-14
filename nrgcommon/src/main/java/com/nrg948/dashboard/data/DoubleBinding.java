@@ -23,21 +23,24 @@
 */
 package com.nrg948.dashboard.data;
 
-import edu.wpi.first.networktables.DoublePublisher;
-import edu.wpi.first.networktables.DoubleSubscriber;
-import edu.wpi.first.networktables.DoubleTopic;
-import edu.wpi.first.networktables.PubSubOption;
 import java.util.Optional;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleSupplier;
+import org.wpilib.tunable.TunableConfig;
+import org.wpilib.tunable.TunableDouble;
+import org.wpilib.tunable.Tunables;
 
 /** A data binding that binds a double publisher and/or subscriber to dashboard data updates. */
-final class DoubleBinding extends DataBinding<DoublePublisher, DoubleSubscriber> {
+final class DoubleBinding extends DataBinding {
   private static final double DEFAULT_VALUE = 0.0;
 
-  private final DoubleTopic topic;
-  private final Optional<DoubleSupplier> supplier;
-  private final Optional<DoubleConsumer> consumer;
+  private final String topic;
+  private final DoubleSupplier supplier;
+  private final DoubleConsumer consumer;
+  private final TunableConfig config;
+
+  @SuppressWarnings("unused")
+  private Optional<TunableDouble> tunable = Optional.empty();
 
   /**
    * Creates a new DoubleBinding with the given topic and supplier.
@@ -46,7 +49,7 @@ final class DoubleBinding extends DataBinding<DoublePublisher, DoubleSubscriber>
    * @param supplier The supplier to use for publishing updates, or null if no publisher is needed
    *     for this binding.
    */
-  public DoubleBinding(DoubleTopic topic, DoubleSupplier supplier) {
+  public DoubleBinding(String topic, DoubleSupplier supplier) {
     this(topic, supplier, null);
   }
 
@@ -59,31 +62,38 @@ final class DoubleBinding extends DataBinding<DoublePublisher, DoubleSubscriber>
    * @param consumer The consumer to use for updating the subscriber, or null if no subscriber is
    *     needed for this binding.
    */
-  public DoubleBinding(DoubleTopic topic, DoubleSupplier supplier, DoubleConsumer consumer) {
+  public DoubleBinding(String topic, DoubleSupplier supplier, DoubleConsumer consumer) {
+    this(topic, Optional.ofNullable(supplier), Optional.ofNullable(consumer));
+  }
+
+  /**
+   * Creates a new DoubleBinding with the given topic, supplier, and consumer.
+   *
+   * @param topic The topic to bind to.
+   * @param supplier The supplier to use for publishing updates, or {@link Optional#empty()} if no
+   *     publisher is needed for this binding.
+   * @param consumer The consumer to use for updating the subscriber, or {@link Optional#empty()} if
+   *     no subscriber is needed for this binding.
+   */
+  public DoubleBinding(
+      String topic, Optional<DoubleSupplier> supplier, Optional<DoubleConsumer> consumer) {
     this.topic = topic;
-    this.supplier = Optional.ofNullable(supplier);
-    this.consumer = Optional.ofNullable(consumer);
+    this.supplier = supplier.orElse(() -> DEFAULT_VALUE);
+    this.consumer = consumer.orElse((v) -> {});
+    this.config =
+        new TunableConfig()
+            .withMutable(consumer.isEmpty())
+            .withPolling(TunableConfig.Polling.ALWAYS_GET);
   }
 
   @Override
-  protected Optional<DoublePublisher> newPublisher() {
-    return supplier.map(s -> topic.publish());
+  protected void enableSelf() {
+    tunable = Optional.of(Tunables.publishDouble(topic, supplier, consumer, config));
   }
 
   @Override
-  protected Optional<DoubleSubscriber> newSubscriber(PubSubOption... options) {
-    return consumer.map(c -> topic.subscribe(DEFAULT_VALUE, options));
-  }
-
-  @Override
-  protected void publishUpdates(DoublePublisher publisher) {
-    publisher.set(supplier.get().getAsDouble());
-  }
-
-  @Override
-  protected void updateSubscriber(DoubleSubscriber subscriber) {
-    for (var value : subscriber.readQueueValues()) {
-      consumer.get().accept(value);
-    }
+  protected void disableSelf() {
+    Tunables.remove(topic);
+    tunable = Optional.empty();
   }
 }

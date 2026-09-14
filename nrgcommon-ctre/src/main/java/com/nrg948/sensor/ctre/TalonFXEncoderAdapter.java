@@ -26,8 +26,8 @@ package com.nrg948.sensor.ctre;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.nrg948.sensor.RelativeEncoder;
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
+import org.wpilib.units.measure.Angle;
+import org.wpilib.units.measure.AngularVelocity;
 
 /** A relative encoder implementation based on the CTR Electronics TalonFX motor controller. */
 public final class TalonFXEncoderAdapter implements RelativeEncoder {

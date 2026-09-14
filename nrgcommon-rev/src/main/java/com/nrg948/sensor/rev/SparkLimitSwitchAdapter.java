@@ -41,6 +41,6 @@ public final class SparkLimitSwitchAdapter implements LimitSwitch {
 
   @Override
   public boolean isPressed() {
-    return limitSwitch.isPressed();
+    return limitSwitch.isPressed().get();
   }
 }

@@ -23,15 +23,22 @@
 */
 package com.nrg948.dashboard.data;
 
-import edu.wpi.first.networktables.GenericPublisher;
 import java.util.Optional;
 import java.util.function.Supplier;
+import org.wpilib.tunable.TunableBase;
+import org.wpilib.tunable.TunableConfig;
+import org.wpilib.tunable.TunableConfig.Polling;
+import org.wpilib.tunable.Tunables;
 
 /** A binding that binds a constant value to dashboard data updates. */
-final class ConstantBinding extends DashboardData {
-  private Supplier<GenericPublisher> publisherSupplier;
-  private Optional<GenericPublisher> publisher = Optional.empty();
-  private int enabledCount = 0;
+final class ConstantBinding extends DataBinding {
+  private final TunableConfig config =
+      new TunableConfig().withMutable(false).withPolling(Polling.GET_ON_CHANGE);
+  private final String topic;
+  private Supplier<TunableBase> tunableSupplier;
+
+  @SuppressWarnings("unused")
+  private Optional<TunableBase> tunable = Optional.empty();
 
   /**
    * Constructs a ConstantBinding with the given topic and boolean value.
@@ -40,14 +47,8 @@ final class ConstantBinding extends DashboardData {
    * @param value The constant boolean value to bind.
    */
   public ConstantBinding(String topic, boolean value) {
-    this.publisherSupplier =
-        () -> {
-          var publisher = TABLE.getTopic(topic).genericPublish("boolean");
-
-          publisher.setBoolean(value);
-
-          return publisher;
-        };
+    this.topic = topic;
+    this.tunableSupplier = () -> Tunables.publishBoolean(topic, () -> value, (v) -> {}, config);
   }
 
   /**
@@ -57,14 +58,9 @@ final class ConstantBinding extends DashboardData {
    * @param value The constant boolean array value to bind.
    */
   public ConstantBinding(String topic, boolean[] value) {
-    this.publisherSupplier =
-        () -> {
-          var publisher = TABLE.getTopic(topic).genericPublish("boolean[]");
-
-          publisher.setBooleanArray(value);
-
-          return publisher;
-        };
+    this.topic = topic;
+    this.tunableSupplier =
+        () -> Tunables.publishValue(topic, () -> value, (v) -> {}, boolean[].class, config);
   }
 
   /**
@@ -74,14 +70,8 @@ final class ConstantBinding extends DashboardData {
    * @param value The constant float value to bind.
    */
   public ConstantBinding(String topic, float value) {
-    this.publisherSupplier =
-        () -> {
-          var publisher = TABLE.getTopic(topic).genericPublish("float");
-
-          publisher.setFloat(value);
-
-          return publisher;
-        };
+    this.topic = topic;
+    this.tunableSupplier = () -> Tunables.publishFloat(topic, () -> value, (v) -> {}, config);
   }
 
   /**
@@ -91,14 +81,9 @@ final class ConstantBinding extends DashboardData {
    * @param value The constant float array value to bind.
    */
   public ConstantBinding(String topic, float[] value) {
-    this.publisherSupplier =
-        () -> {
-          var publisher = TABLE.getTopic(topic).genericPublish("float[]");
-
-          publisher.setFloatArray(value);
-
-          return publisher;
-        };
+    this.topic = topic;
+    this.tunableSupplier =
+        () -> Tunables.publishValue(topic, () -> value, (v) -> {}, float[].class, config);
   }
 
   /**
@@ -108,14 +93,8 @@ final class ConstantBinding extends DashboardData {
    * @param value The constant double value to bind.
    */
   public ConstantBinding(String topic, double value) {
-    this.publisherSupplier =
-        () -> {
-          var publisher = TABLE.getTopic(topic).genericPublish("double");
-
-          publisher.setDouble(value);
-
-          return publisher;
-        };
+    this.topic = topic;
+    this.tunableSupplier = () -> Tunables.publishDouble(topic, () -> value, (v) -> {}, config);
   }
 
   /**
@@ -125,14 +104,9 @@ final class ConstantBinding extends DashboardData {
    * @param value The constant double array value to bind.
    */
   public ConstantBinding(String topic, double[] value) {
-    this.publisherSupplier =
-        () -> {
-          var publisher = TABLE.getTopic(topic).genericPublish("double[]");
-
-          publisher.setDoubleArray(value);
-
-          return publisher;
-        };
+    this.topic = topic;
+    this.tunableSupplier =
+        () -> Tunables.publishValue(topic, () -> value, (v) -> {}, double[].class, config);
   }
 
   /**
@@ -141,15 +115,9 @@ final class ConstantBinding extends DashboardData {
    * @param topic The topic to bind the value to.
    * @param value The constant long value to bind.
    */
-  public ConstantBinding(String topic, long value) {
-    this.publisherSupplier =
-        () -> {
-          var publisher = TABLE.getTopic(topic).genericPublish("int");
-
-          publisher.setInteger(value);
-
-          return publisher;
-        };
+  public ConstantBinding(String topic, int value) {
+    this.topic = topic;
+    this.tunableSupplier = () -> Tunables.publishInt(topic, () -> value, (v) -> {}, config);
   }
 
   /**
@@ -158,15 +126,10 @@ final class ConstantBinding extends DashboardData {
    * @param topic The topic to bind the value to.
    * @param value The constant long array value to bind.
    */
-  public ConstantBinding(String topic, long[] value) {
-    this.publisherSupplier =
-        () -> {
-          var publisher = TABLE.getTopic(topic).genericPublish("int[]");
-
-          publisher.setIntegerArray(value);
-
-          return publisher;
-        };
+  public ConstantBinding(String topic, int[] value) {
+    this.topic = topic;
+    this.tunableSupplier =
+        () -> Tunables.publishValue(topic, () -> value, (v) -> {}, int[].class, config);
   }
 
   /**
@@ -176,14 +139,9 @@ final class ConstantBinding extends DashboardData {
    * @param value The constant string value to bind.
    */
   public ConstantBinding(String topic, String value) {
-    this.publisherSupplier =
-        () -> {
-          var publisher = TABLE.getTopic(topic).genericPublish("string");
-
-          publisher.setString(value);
-
-          return publisher;
-        };
+    this.topic = topic;
+    this.tunableSupplier =
+        () -> Tunables.publishValue(topic, () -> value, (v) -> {}, String.class, config);
   }
 
   /**
@@ -193,14 +151,9 @@ final class ConstantBinding extends DashboardData {
    * @param value The constant string array value to bind.
    */
   public ConstantBinding(String topic, String[] value) {
-    this.publisherSupplier =
-        () -> {
-          var publisher = TABLE.getTopic(topic).genericPublish("string[]");
-
-          publisher.setStringArray(value);
-
-          return publisher;
-        };
+    this.topic = topic;
+    this.tunableSupplier =
+        () -> Tunables.publishValue(topic, () -> value, (v) -> {}, String[].class, config);
   }
 
   /**
@@ -211,44 +164,21 @@ final class ConstantBinding extends DashboardData {
    * @param value The constant raw byte array value to bind.
    */
   public ConstantBinding(String topic, String typeString, byte[] value) {
-    this.publisherSupplier =
-        () -> {
-          var publisher = TABLE.getTopic(topic).genericPublish(typeString);
-
-          publisher.setRaw(value);
-
-          return publisher;
-        };
+    this.topic = topic;
+    this.tunableSupplier =
+        () ->
+            Tunables.publishValue(
+                topic, () -> value, (v) -> {}, byte[].class, config.withTypeString(typeString));
   }
 
   @Override
-  public void enable() {
-    if (enabledCount++ > 0) {
-      return;
-    }
-
-    publisher = Optional.of(publisherSupplier.get());
+  public void enableSelf() {
+    tunable = Optional.of(tunableSupplier.get());
   }
 
   @Override
-  public void disable() {
-    if (enabledCount <= 0) {
-      throw new IllegalStateException("Cannot disable a binding that is not enabled");
-    }
-
-    if (--enabledCount == 0) {
-      close();
-    }
-  }
-
-  @Override
-  protected void update() {
-    // Constant values do not change and therefore do not need to be updated.
-  }
-
-  @Override
-  public void close() {
-    publisher.ifPresent(GenericPublisher::close);
-    publisher = Optional.empty();
+  public void disableSelf() {
+    Tunables.remove(topic);
+    tunable = Optional.empty();
   }
 }

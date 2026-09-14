@@ -49,13 +49,13 @@ import com.nrg948.sensor.LimitSwitch;
 import com.nrg948.sensor.RelativeEncoder;
 import com.nrg948.sensor.ctre.TalonFXEncoderAdapter;
 import com.nrg948.sensor.ctre.TalonFXLimitSwitchAdapter;
-import edu.wpi.first.units.measure.Current;
-import edu.wpi.first.units.measure.Temperature;
-import edu.wpi.first.util.datalog.DataLog;
-import edu.wpi.first.util.datalog.DoubleLogEntry;
-import edu.wpi.first.wpilibj.DataLogManager;
-import edu.wpi.first.wpilibj.DriverStation;
 import java.util.function.Function;
+import org.wpilib.datalog.DataLog;
+import org.wpilib.datalog.DoubleLogEntry;
+import org.wpilib.hardware.bus.CANPort;
+import org.wpilib.system.DataLogManager;
+import org.wpilib.units.measure.Current;
+import org.wpilib.units.measure.Temperature;
 
 /** A motor controller implementation based on the CTR Electronics TalonFX controller. */
 public final class TalonFXAdapter implements MotorController {
@@ -64,7 +64,7 @@ public final class TalonFXAdapter implements MotorController {
   private static final DataLog LOG = DataLogManager.getLog();
 
   private final TalonFX talonFX;
-  private double distancePerRotation;
+  private double distancePerRotation = 1.0;
   private final StatusSignal<Current> supplyCurrent;
   private final StatusSignal<Current> statorCurrent;
   private final StatusSignal<Temperature> temperature;
@@ -104,7 +104,7 @@ public final class TalonFXAdapter implements MotorController {
   }
 
   /**
-   * Constructs a TalonFXAdapter.
+   * Constructs a TalonFXAdapter for a {@link TalonFX} motor controller.
    *
    * <p>This constructor assumes the {@link TalonFX} object is already configured or will be
    * configured to match the provided motor output configuration by the caller.
@@ -128,23 +128,24 @@ public final class TalonFXAdapter implements MotorController {
   }
 
   /**
-   * Constructs a TalonFXAdapter.
+   * Constructs a TalonFXAdapter for a {@link TalonFX} motor controller.
    *
    * @param logPrefix The prefix for the log entries.
-   * @param deviceID The device ID of the TalonFX.
+   * @param busID The CAN bus ID.
+   * @param deviceID The device ID.
    */
-  public TalonFXAdapter(String logPrefix, int deviceID) {
-    this(logPrefix, new TalonFX(deviceID, CANBus.roboRIO()));
+  public TalonFXAdapter(String logPrefix, CANPort busID, int deviceID) {
+    this(logPrefix, new TalonFX(deviceID, new CANBus(busID)));
   }
 
   @Override
-  public void set(double speed) {
-    talonFX.set(speed);
+  public void setThrottle(double speed) {
+    talonFX.setThrottle(speed);
   }
 
   @Override
-  public double get() {
-    return talonFX.get();
+  public double getThrottle() {
+    return talonFX.getThrottle();
   }
 
   @Override
@@ -191,11 +192,6 @@ public final class TalonFXAdapter implements MotorController {
   @Override
   public void disable() {
     talonFX.disable();
-  }
-
-  @Override
-  public void stopMotor() {
-    talonFX.stopMotor();
   }
 
   @Override
@@ -294,7 +290,7 @@ public final class TalonFXAdapter implements MotorController {
           String.format(
               "Failed to create instance of config class %s: %s",
               configClass.getSimpleName(), e.getMessage());
-      DriverStation.reportError(errorMessage, true);
+
       throw new MotorConfigException(errorMessage, e);
     }
 
@@ -312,8 +308,6 @@ public final class TalonFXAdapter implements MotorController {
             talonFX.getDeviceID(),
             status.getDescription(),
             status.getName());
-
-    DriverStation.reportError(errorMessage, true);
 
     throw new MotorConfigException(errorMessage);
   }
@@ -344,8 +338,6 @@ public final class TalonFXAdapter implements MotorController {
             talonFX.getDeviceID(),
             status.getDescription(),
             status.getName());
-
-    DriverStation.reportError(errorMessage, true);
 
     throw new MotorConfigException(errorMessage);
   }

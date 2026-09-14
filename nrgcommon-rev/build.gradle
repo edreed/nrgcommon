@@ -27,7 +27,7 @@ plugins {
     id 'java-library'
 
     id 'maven-publish'
-    id "com.diffplug.spotless"  version "7.0.1"
+    id "com.diffplug.spotless"  version "8.10.2"
 }
 
 spotless {
@@ -38,10 +38,7 @@ spotless {
 }
 
 group = 'com.nrg948'
-version = '2026.3.1' + (Boolean.valueOf(System.getProperty("release")) ? "" : "-SNAPSHOT")
-
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
+version = '2027.0.0' + (Boolean.valueOf(System.getProperty("release")) ? "" : "-SNAPSHOT")
 
 repositories {
     // Use Maven Central for resolving dependencies.
@@ -59,20 +56,24 @@ repositories {
 }
 
 def wpilib = [
-    version: '2026.2.1'
+    version: '2027.0.0-alpha-7'
 ]
 
 dependencies {
     api project(':nrgcommon')
 
-    api "com.revrobotics.frc:REVLib-java:2026.0.5"
-    api "edu.wpi.first.wpiunits:wpiunits-java:${wpilib.version}"
-    api "edu.wpi.first.wpiutil:wpiutil-java:${wpilib.version}"
+    api "com.revrobotics.frc:REVLib-java:2027.0.0-alpha-8"
+    api "org.wpilib.datalog:datalog-java:${wpilib.version}"
+    api "org.wpilib.wpiunits:wpiunits-java:${wpilib.version}"
+    api "org.wpilib.wpiutil:wpiutil-java:${wpilib.version}"
 }
 
 java {
     withJavadocJar()
     withSourcesJar()
+
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 tasks.named('test') {

@@ -23,21 +23,24 @@
 */
 package com.nrg948.dashboard.data;
 
-import edu.wpi.first.networktables.IntegerPublisher;
-import edu.wpi.first.networktables.IntegerSubscriber;
-import edu.wpi.first.networktables.IntegerTopic;
-import edu.wpi.first.networktables.PubSubOption;
 import java.util.Optional;
-import java.util.function.LongConsumer;
-import java.util.function.LongSupplier;
+import java.util.function.IntConsumer;
+import java.util.function.IntSupplier;
+import org.wpilib.tunable.TunableConfig;
+import org.wpilib.tunable.TunableInt;
+import org.wpilib.tunable.Tunables;
 
-/** A data binding that binds a long publisher and/or subscriber to dashboard data updates. */
-final class IntegerBinding extends DataBinding<IntegerPublisher, IntegerSubscriber> {
-  private static final long DEFAULT_VALUE = 0L;
+/** A data binding that binds a boolean publisher and/or subscriber to dashboard data updates. */
+final class IntegerBinding extends DataBinding {
+  private static final int DEFAULT_VALUE = 0;
 
-  private final IntegerTopic topic;
-  private final Optional<LongSupplier> supplier;
-  private final Optional<LongConsumer> consumer;
+  private final String topic;
+  private final IntSupplier supplier;
+  private final IntConsumer consumer;
+  private final TunableConfig config;
+
+  @SuppressWarnings("unused")
+  private Optional<TunableInt> tunable = Optional.empty();
 
   /**
    * Creates a new IntegerBinding with the given topic and supplier.
@@ -46,7 +49,7 @@ final class IntegerBinding extends DataBinding<IntegerPublisher, IntegerSubscrib
    * @param supplier The supplier to use for publishing updates, or null if no publisher is needed
    *     for this binding.
    */
-  public IntegerBinding(IntegerTopic topic, LongSupplier supplier) {
+  public IntegerBinding(String topic, IntSupplier supplier) {
     this(topic, supplier, null);
   }
 
@@ -59,31 +62,38 @@ final class IntegerBinding extends DataBinding<IntegerPublisher, IntegerSubscrib
    * @param consumer The consumer to use for updating the subscriber, or null if no subscriber is
    *     needed for this binding.
    */
-  public IntegerBinding(IntegerTopic topic, LongSupplier supplier, LongConsumer consumer) {
+  public IntegerBinding(String topic, IntSupplier supplier, IntConsumer consumer) {
+    this(topic, Optional.ofNullable(supplier), Optional.ofNullable(consumer));
+  }
+
+  /**
+   * Creates a new IntegerBinding with the given topic, supplier, and consumer.
+   *
+   * @param topic The topic to bind to.
+   * @param supplier The supplier to use for publishing updates, or {@link Optional#empty()} if no
+   *     publisher is needed for this binding.
+   * @param consumer The consumer to use for updating the subscriber, or {@link Optional#empty()} if
+   *     no subscriber is needed for this binding.
+   */
+  public IntegerBinding(
+      String topic, Optional<IntSupplier> supplier, Optional<IntConsumer> consumer) {
     this.topic = topic;
-    this.supplier = Optional.ofNullable(supplier);
-    this.consumer = Optional.ofNullable(consumer);
+    this.supplier = supplier.orElse(() -> DEFAULT_VALUE);
+    this.consumer = consumer.orElse((v) -> {});
+    this.config =
+        new TunableConfig()
+            .withMutable(consumer.isEmpty())
+            .withPolling(TunableConfig.Polling.ALWAYS_GET);
   }
 
   @Override
-  protected Optional<IntegerPublisher> newPublisher() {
-    return supplier.map(s -> topic.publish());
+  protected void enableSelf() {
+    tunable = Optional.of(Tunables.publishInt(topic, supplier, consumer, config));
   }
 
   @Override
-  protected Optional<IntegerSubscriber> newSubscriber(PubSubOption... options) {
-    return consumer.map(c -> topic.subscribe(DEFAULT_VALUE, options));
-  }
-
-  @Override
-  protected void publishUpdates(IntegerPublisher publisher) {
-    publisher.set(supplier.get().getAsLong());
-  }
-
-  @Override
-  protected void updateSubscriber(IntegerSubscriber subscriber) {
-    for (var value : subscriber.readQueueValues()) {
-      consumer.get().accept(value);
-    }
+  protected void disableSelf() {
+    Tunables.remove(topic);
+    tunable = Optional.empty();
   }
 }

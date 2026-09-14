@@ -89,18 +89,18 @@
  *
  * <p>Each annotation contains two elements: {@link AutonomousCommand#name()} and {@link
  * AutonomousCommand#isDefault()}. The <code>name</code> element provides the name to display for
- * the command in user interface elements like {@link SendableChooser}. The <code>isDefault</code>
+ * the command in user interface elements like {@link Selectable}. The <code>isDefault</code>
  * element determines which command is the default selection. Only one command class or factory
  * method should be set as the default.
  *
  * <p>The {@link AutonomousCommandGenerator} annotation identifies a public static method invoked to
  * create a collection of elements mapping the name to display in user interface elements like
- * {@link SendableChooser} to a {@link Command}. The method takes a list of parameters passed to
- * {@link Autonomous#getChooser(Object...)} that are used to access robot subsystems and returns a
- * {@link Collection} of {@link LabelValue}{@code <String, Command>} elements. This is typically a
- * single parameter of type <code>RobotContainer</code> but may be another type managing access to
- * the subsystems or the list of subsystems themselves. All annotated methods must accept the same
- * types and number of arguments.
+ * {@link Selectable} to a {@link Command}. The method takes a list of parameters passed to {@link
+ * Autonomous#getChooser(Object...)} that are used to access robot subsystems and returns a {@link
+ * Collection} of {@link LabelValue}{@code <String, Command>} elements. This is typically a single
+ * parameter of type <code>RobotContainer</code> but may be another type managing access to the
+ * subsystems or the list of subsystems themselves. All annotated methods must accept the same types
+ * and number of arguments.
  *
  * <p>The following example shows how to define and annotate an autonomous {@link Command} generator
  * method.<br>
@@ -120,9 +120,8 @@
  * </pre>
  *
  * <p>Once all autonomous command classes, factory and/or generator methods have been annotated, the
- * {@link Autonomous#getChooser(Object...)} method can be used to create a {@link SendableChooser}
- * object enabling interactive selection of the autonomous command from Shuffleboard or
- * SmartDashboard.
+ * {@link Autonomous#getChooser(Object...)} method can be used to create a {@link Selectable} object
+ * enabling interactive selection of the autonomous command from Shuffleboard or SmartDashboard.
  *
  * <p>The following example shows how to implement interactive autonomous command selection.<br>
  *
@@ -131,7 +130,7 @@
  * public class RobotContainer {
  *   private DrivetrainSubsystem m_drivetrainSubsystem = new DrivetrainSubsystem();
  *
- *   private SendableChooser{@literal <}Command{@literal >} m_autonomousCommandChooser;
+ *   private Selectable{@literal <}Command{@literal >} m_autonomousCommandChooser;
  *
  *   public RobotContainer() {
  *     m_autonomousCommandChooser = Autonomous.getChooser(this);
@@ -157,7 +156,7 @@
  */
 package com.nrg948.autonomous;
 
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj2.command.Command;
 import io.arxila.javatuples.LabelValue;
 import java.util.Collection;
+import org.wpilib.command2.Command;
+import org.wpilib.tunable.Selectable;

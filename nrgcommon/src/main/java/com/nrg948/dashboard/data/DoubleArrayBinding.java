@@ -23,10 +23,6 @@
 */
 package com.nrg948.dashboard.data;
 
-import edu.wpi.first.networktables.DoubleArrayPublisher;
-import edu.wpi.first.networktables.DoubleArraySubscriber;
-import edu.wpi.first.networktables.DoubleArrayTopic;
-import edu.wpi.first.networktables.PubSubOption;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -34,12 +30,8 @@ import java.util.function.Supplier;
 /**
  * A data binding that binds a double array publisher and/or subscriber to dashboard data updates.
  */
-final class DoubleArrayBinding extends DataBinding<DoubleArrayPublisher, DoubleArraySubscriber> {
+final class DoubleArrayBinding extends ObjectBinding<double[]> {
   private static final double[] DEFAULT_VALUE = new double[0];
-
-  private final DoubleArrayTopic topic;
-  private final Optional<Supplier<double[]>> supplier;
-  private final Optional<Consumer<double[]>> consumer;
 
   /**
    * Creates a new DoubleArrayBinding with the given topic and supplier.
@@ -48,8 +40,8 @@ final class DoubleArrayBinding extends DataBinding<DoubleArrayPublisher, DoubleA
    * @param supplier The supplier to use for publishing updates, or null if no publisher is needed
    *     for this binding.
    */
-  public DoubleArrayBinding(DoubleArrayTopic topic, Supplier<double[]> supplier) {
-    this(topic, supplier, null);
+  public DoubleArrayBinding(String topic, Supplier<double[]> supplier) {
+    super(topic, Optional.ofNullable(supplier), Optional.empty(), double[].class, DEFAULT_VALUE);
   }
 
   /**
@@ -62,31 +54,12 @@ final class DoubleArrayBinding extends DataBinding<DoubleArrayPublisher, DoubleA
    *     needed for this binding.
    */
   public DoubleArrayBinding(
-      DoubleArrayTopic topic, Supplier<double[]> supplier, Consumer<double[]> consumer) {
-    this.topic = topic;
-    this.supplier = Optional.ofNullable(supplier);
-    this.consumer = Optional.ofNullable(consumer);
-  }
-
-  @Override
-  protected Optional<DoubleArrayPublisher> newPublisher() {
-    return supplier.map(s -> topic.publish());
-  }
-
-  @Override
-  protected Optional<DoubleArraySubscriber> newSubscriber(PubSubOption... options) {
-    return consumer.map(c -> topic.subscribe(DEFAULT_VALUE, options));
-  }
-
-  @Override
-  protected void publishUpdates(DoubleArrayPublisher publisher) {
-    publisher.set(supplier.get().get());
-  }
-
-  @Override
-  protected void updateSubscriber(DoubleArraySubscriber subscriber) {
-    for (var value : subscriber.readQueueValues()) {
-      consumer.get().accept(value);
-    }
+      String topic, Supplier<double[]> supplier, Consumer<double[]> consumer) {
+    super(
+        topic,
+        Optional.ofNullable(supplier),
+        Optional.ofNullable(consumer),
+        double[].class,
+        DEFAULT_VALUE);
   }
 }

@@ -23,7 +23,7 @@
 */
 package com.nrg948.preferences;
 
-import edu.wpi.first.wpilibj.Preferences;
+import org.wpilib.preferences.Preferences;
 
 /** Utility class for managing WPILib Preferences. */
 public final class PreferencesUtil {

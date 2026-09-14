@@ -39,9 +39,9 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkBaseConfigAccessor;
-import edu.wpi.first.util.datalog.DataLog;
-import edu.wpi.first.util.datalog.DoubleLogEntry;
-import edu.wpi.first.wpilibj.DataLogManager;
+import org.wpilib.datalog.DataLog;
+import org.wpilib.datalog.DoubleLogEntry;
+import org.wpilib.system.DataLogManager;
 
 /** A motor controller implementation based on the REV Robotics Spark controllers. */
 abstract class SparkAdapter implements MotorController {
@@ -70,6 +70,7 @@ abstract class SparkAdapter implements MotorController {
   private static final DataLog LOG = DataLogManager.getLog();
 
   private final Accessor spark;
+  private double distancePerRotation = 1.0;
 
   private final DoubleLogEntry logOutputCurrent;
   private final DoubleLogEntry logTemperature;
@@ -115,13 +116,13 @@ abstract class SparkAdapter implements MotorController {
   }
 
   @Override
-  public void set(double speed) {
-    spark.get().set(speed);
+  public void setThrottle(double speed) {
+    spark.get().setThrottle(speed);
   }
 
   @Override
-  public double get() {
-    return spark.get().get();
+  public double getThrottle() {
+    return spark.get().getThrottle();
   }
 
   @Override
@@ -160,11 +161,6 @@ abstract class SparkAdapter implements MotorController {
   }
 
   @Override
-  public void stopMotor() {
-    spark.get().stopMotor();
-  }
-
-  @Override
   public MotorController createFollower(
       String logPrefix, int deviceID, boolean isInvertedFromLeader) {
     SparkAdapter follower = spark.newAdapter(logPrefix, deviceID);
@@ -177,11 +173,6 @@ abstract class SparkAdapter implements MotorController {
         .inverted(configAccessor.getInverted())
         .idleMode(configAccessor.getIdleMode());
 
-    motorOutputConfigs
-        .encoder
-        .positionConversionFactor(configAccessor.encoder.getPositionConversionFactor())
-        .velocityConversionFactor(configAccessor.encoder.getVelocityConversionFactor());
-
     // Configure the follower to follow the leader.
     motorOutputConfigs.follow(spark.get(), isInvertedFromLeader);
 
@@ -191,13 +182,15 @@ abstract class SparkAdapter implements MotorController {
         .configure(
             motorOutputConfigs, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
+    follower.distancePerRotation = this.distancePerRotation;
+
     return follower;
   }
 
   @Override
   public RelativeEncoder getEncoder() {
     if (encoderAdapter == null) {
-      encoderAdapter = new SparkEncoderAdapter(spark.get().getEncoder());
+      encoderAdapter = new SparkEncoderAdapter(spark.get().getEncoder(), distancePerRotation);
     }
     return encoderAdapter;
   }
@@ -220,8 +213,8 @@ abstract class SparkAdapter implements MotorController {
 
   @Override
   public void logTelemetry() {
-    logOutputCurrent.append(spark.get().getOutputCurrent());
-    logTemperature.append(spark.get().getMotorTemperature());
+    logOutputCurrent.append(spark.get().getOutputCurrent().get());
+    logTemperature.append(spark.get().getMotorTemperature().get());
   }
 
   @Override
@@ -232,18 +225,13 @@ abstract class SparkAdapter implements MotorController {
         .inverted(config.direction().isInverted())
         .idleMode(convertIdleMode(config.idleMode()));
 
-    double distancePerRotation = config.distancePerRotation();
-    driveMotorConfig
-        .encoder
-        .positionConversionFactor(distancePerRotation)
-        // Convert from rotations per minute to rotations per second.
-        .velocityConversionFactor(distancePerRotation / 60.0);
-
     spark
         .get()
         .configure(
             driveMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    return null;
+    this.distancePerRotation = config.distancePerRotation();
+
+    return this;
   }
 
   @Override

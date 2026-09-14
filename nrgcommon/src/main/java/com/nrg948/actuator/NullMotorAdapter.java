@@ -36,10 +36,10 @@ public class NullMotorAdapter implements MotorController {
   public NullMotorAdapter() {}
 
   @Override
-  public void set(double speed) {}
+  public void setThrottle(double speed) {}
 
   @Override
-  public double get() {
+  public double getThrottle() {
     return 0;
   }
 
@@ -53,9 +53,6 @@ public class NullMotorAdapter implements MotorController {
 
   @Override
   public void disable() {}
-
-  @Override
-  public void stopMotor() {}
 
   @Override
   public MotorController createFollower(

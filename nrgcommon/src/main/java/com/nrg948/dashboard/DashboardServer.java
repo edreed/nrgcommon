@@ -24,14 +24,14 @@
 package com.nrg948.dashboard;
 
 import com.nrg948.dashboard.data.TabBinding;
-import edu.wpi.first.net.WebServer;
-import edu.wpi.first.wpilibj.Filesystem;
-import edu.wpi.first.wpilibj.TimedRobot;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.wpilib.framework.TimedRobot;
+import org.wpilib.net.WebServer;
+import org.wpilib.system.Filesystem;
 
 /** Utility class for starting and stopping the dashboard web server. */
 public final class DashboardServer {
@@ -62,8 +62,6 @@ public final class DashboardServer {
    */
   public static Closeable start(TimedRobot robot, String mode) {
     setMode(mode);
-
-    robot.addPeriodic(DashboardServer::updateData, robot.getPeriod());
 
     WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
 
@@ -98,6 +96,7 @@ public final class DashboardServer {
    *
    * @param mode The mode to set.
    */
+  @SuppressWarnings("null")
   public static void setMode(String mode) {
     var lastModeTabs = currentModeTabs.orElse(new ArrayList<>());
     var newModeTabs = tabBindings.get(mode);
@@ -112,18 +111,6 @@ public final class DashboardServer {
     lastModeTabs.forEach(TabBinding::disable);
 
     currentModeTabs = Optional.of(newModeTabs);
-  }
-
-  /**
-   * Updates the data for all active tabs. This should be called periodically to ensure that the
-   * dashboard displays the most up-to-date information.
-   *
-   * <p>Note that this method is automatically called by the {@link TimedRobot} instance when the
-   * server is started using the {@link #start(TimedRobot)} method, so it does not need to be called
-   * manually in most cases.
-   */
-  private static void updateData() {
-    currentModeTabs.ifPresent(tabs -> tabs.forEach(TabBinding::update));
   }
 
   private DashboardServer() {

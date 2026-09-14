@@ -23,11 +23,12 @@
 */
 package com.nrg948.actuator;
 
-import edu.wpi.first.math.system.plant.DCMotor;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.Optional;
+import org.wpilib.hardware.bus.CANPort;
+import org.wpilib.math.system.DCMotor;
 
 /** An enum representing the properties of a specific motor type. */
 public enum Motors {
@@ -104,7 +105,7 @@ public enum Motors {
       return Optional.of(
           lookup.findConstructor(
               Class.forName(className),
-              MethodType.methodType(void.class, String.class, int.class)));
+              MethodType.methodType(void.class, String.class, CANPort.class, int.class)));
     } catch (NoSuchMethodException | IllegalAccessException | ClassNotFoundException e) {
       return Optional.empty();
     }
@@ -140,17 +141,17 @@ public enum Motors {
 
   /** {@return the free speed RPM} */
   public double getFreeSpeedRPM() {
-    return this.motor.freeSpeedRadPerSec / (2 * Math.PI) * 60;
+    return this.motor.freeSpeed / (2 * Math.PI) * 60;
   }
 
   /** {@return the stall torque in Nm} */
   public double getStallTorque() {
-    return this.motor.stallTorqueNewtonMeters;
+    return this.motor.stallTorque;
   }
 
   /** {@return the voltage required to overcome the internal resistance of the motor} */
   public double getKs() {
-    return this.motor.rOhms * this.motor.freeCurrentAmps;
+    return this.motor.R * this.motor.freeCurrent;
   }
 
   /**
@@ -158,15 +159,16 @@ public enum Motors {
    *
    * <p>The newly created motor controller is configured with the default settings for the motor
    * type. If you want to configure the motor controller with custom settings, call one or more of
-   * the {@code apply()} methods. As a convenience, the {@link #newController(String, int,
+   * the {@code apply()} methods. As a convenience, the {@link #newController(String, CANPort, int,
    * MotorConfig, MotorCurrentConfig)} method can be called instead to apply basic and electrical
    * current configurations.
    *
    * @param logPrefix The prefix for the log entries.
+   * @param busID The CAN bus ID.
    * @param deviceID The CAN device ID.
    * @return A new MotorController implementation.
    */
-  public MotorController newController(String logPrefix, int deviceID) {
+  public MotorController newController(String logPrefix, CANPort busID, int deviceID) {
     switch (this) {
       case NullMotor:
         return new NullMotorAdapter();
@@ -174,15 +176,15 @@ public enum Motors {
       case Falcon500:
       case KrakenX44:
       case KrakenX60:
-        return invokeConstructor(talonFxAdapterConstructor, logPrefix, deviceID);
+        return invokeConstructor(talonFxAdapterConstructor, logPrefix, busID, deviceID);
 
       case NeoV1_1:
       case NeoVortexMax:
       case Neo550:
-        return invokeConstructor(sparkMaxAdapterConstructor, logPrefix, deviceID);
+        return invokeConstructor(sparkMaxAdapterConstructor, logPrefix, busID, deviceID);
 
       case NeoVortexFlex:
-        return invokeConstructor(sparkFlexAdapterConstructor, logPrefix, deviceID);
+        return invokeConstructor(sparkFlexAdapterConstructor, logPrefix, busID, deviceID);
 
       default:
         throw new UnsupportedOperationException("Unknown Motor Type");
@@ -193,15 +195,20 @@ public enum Motors {
    * Returns a new {@link MotorController} implementation for this motor type.
    *
    * @param logPrefix The prefix for the log entries.
+   * @param busID The CAN bus ID.
    * @param deviceID The CAN device ID.
    * @param basicConfig The basic configuration for the motor.
    * @param currentConfig The electrical current configuration for the motor.
    * @return A new MotorController implementation.
    */
   public MotorController newController(
-      String logPrefix, int deviceID, MotorConfig basicConfig, MotorCurrentConfig currentConfig) {
+      String logPrefix,
+      CANPort busID,
+      int deviceID,
+      MotorConfig basicConfig,
+      MotorCurrentConfig currentConfig) {
     try {
-      return newController(logPrefix, deviceID).apply(basicConfig).apply(currentConfig);
+      return newController(logPrefix, busID, deviceID).apply(basicConfig).apply(currentConfig);
     } catch (MotorConfigException e) {
       return new NullMotorAdapter();
     }
@@ -212,6 +219,7 @@ public enum Motors {
    *
    * @param constructor The MethodHandle of the constructor.
    * @param logPrefix The prefix for the log entries.
+   * @param busID The CAN bus ID.
    * @param deviceID The CAN device ID.
    * @return A new MotorController implementation.
    * @throws RuntimeException if the constructor cannot be invoked or if the motor adapter class is
@@ -219,13 +227,13 @@ public enum Motors {
    * @throws IllegalStateException if the motor adapter class is not found for the motor type.
    */
   private MotorController invokeConstructor(
-      Optional<MethodHandle> constructor, String logPrefix, int deviceID) {
+      Optional<MethodHandle> constructor, String logPrefix, CANPort busID, int deviceID) {
     return (MotorController)
         constructor
             .map(
                 c -> {
                   try {
-                    return c.invoke(logPrefix, deviceID);
+                    return c.invoke(logPrefix, busID, deviceID);
                   } catch (Throwable e) {
                     throw new RuntimeException(e);
                   }

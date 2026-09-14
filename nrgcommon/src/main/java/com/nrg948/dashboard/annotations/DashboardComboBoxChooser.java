@@ -26,14 +26,14 @@ package com.nrg948.dashboard.annotations;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import java.lang.annotation.Target;
+import org.wpilib.tunable.Selectable;
 
 /**
  * Annotation for a combo box chooser widget on the dashboard.
  *
- * <p>This annotation can be applied to fields or methods that return a {@link SendableChooser} or
- * any {@link Enum} value.
+ * <p>This annotation can be applied to fields or methods that return a {@link Selectable} or any
+ * {@link Enum} value.
  */
 @Target({FIELD, METHOD})
 public @interface DashboardComboBoxChooser {

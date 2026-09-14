@@ -27,7 +27,7 @@ plugins {
     id 'java-library'
 
     id 'maven-publish'
-    id "com.diffplug.spotless"  version "7.0.1"
+    id "com.diffplug.spotless"  version "8.10.2"
 }
 
 spotless {
@@ -38,10 +38,7 @@ spotless {
 }
 
 group = 'com.nrg948'
-version = '2026.3.1' + (Boolean.valueOf(System.getProperty("release")) ? "" : "-SNAPSHOT")
-
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
+version = '2027.0.0' + (Boolean.valueOf(System.getProperty("release")) ? "" : "-SNAPSHOT")
 
 repositories {
     // Use Maven Central for resolving dependencies.
@@ -54,24 +51,26 @@ repositories {
 }
 
 def wpilib = [
-    version: '2026.2.1'
+    version: '2027.0.0-alpha-7'
 ]
 
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.7.2'
 
     api "io.arxila.javatuples:javatuples:2.0.1"
-    api "edu.wpi.first.wpilibj:wpilibj-java:${wpilib.version}"
+    api "org.wpilib.wpilibj:wpilibj-java:${wpilib.version}"
 
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.0'
     implementation 'com.google.auto.service:auto-service:1.1.1'
-    implementation "edu.wpi.first.cscore:cscore-java:${wpilib.version}"
-    implementation "edu.wpi.first.ntcore:ntcore-java:${wpilib.version}"
-    implementation "edu.wpi.first.wpilibNewCommands:wpilibNewCommands-java:${wpilib.version}"
-    implementation "edu.wpi.first.wpimath:wpimath-java:${wpilib.version}"
-    implementation "edu.wpi.first.wpinet:wpinet-java:${wpilib.version}"
-    implementation "edu.wpi.first.wpiunits:wpiunits-java:${wpilib.version}"
-    implementation "edu.wpi.first.wpiutil:wpiutil-java:${wpilib.version}"
+    implementation "org.wpilib.cscore:cscore-java:${wpilib.version}"
+    implementation "org.wpilib.ntcore:ntcore-java:${wpilib.version}"
+    implementation "org.wpilib.commandsv2:commandsv2-java:${wpilib.version}"
+    implementation "org.wpilib.telemetry:telemetry-java:${wpilib.version}"
+    implementation "org.wpilib.tunables:tunables-java:${wpilib.version}"
+    implementation "org.wpilib.wpimath:wpimath-java:${wpilib.version}"
+    implementation "org.wpilib.wpinet:wpinet-java:${wpilib.version}"
+    implementation "org.wpilib.wpiunits:wpiunits-java:${wpilib.version}"
+    implementation "org.wpilib.wpiutil:wpiutil-java:${wpilib.version}"
 
     annotationProcessor 'com.google.auto.service:auto-service-annotations:1.1.1'
 }
@@ -79,6 +78,9 @@ dependencies {
 java {
     withJavadocJar()
     withSourcesJar()
+
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 tasks.named('test') {

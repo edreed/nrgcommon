@@ -23,21 +23,24 @@
 */
 package com.nrg948.dashboard.data;
 
-import edu.wpi.first.networktables.FloatPublisher;
-import edu.wpi.first.networktables.FloatSubscriber;
-import edu.wpi.first.networktables.FloatTopic;
-import edu.wpi.first.networktables.PubSubOption;
-import edu.wpi.first.util.function.FloatConsumer;
-import edu.wpi.first.util.function.FloatSupplier;
 import java.util.Optional;
+import org.wpilib.tunable.TunableConfig;
+import org.wpilib.tunable.TunableFloat;
+import org.wpilib.tunable.Tunables;
+import org.wpilib.util.function.FloatConsumer;
+import org.wpilib.util.function.FloatSupplier;
 
 /** A data binding that binds a float publisher and/or subscriber to dashboard data updates. */
-final class FloatBinding extends DataBinding<FloatPublisher, FloatSubscriber> {
+final class FloatBinding extends DataBinding {
   private static final float DEFAULT_VALUE = 0.0f;
 
-  private final FloatTopic topic;
-  private final Optional<FloatSupplier> supplier;
-  private final Optional<FloatConsumer> consumer;
+  private final String topic;
+  private final FloatSupplier supplier;
+  private final FloatConsumer consumer;
+  private final TunableConfig config;
+
+  @SuppressWarnings("unused")
+  private Optional<TunableFloat> tunable = Optional.empty();
 
   /**
    * Creates a new FloatBinding with the given topic and supplier.
@@ -46,7 +49,7 @@ final class FloatBinding extends DataBinding<FloatPublisher, FloatSubscriber> {
    * @param supplier The supplier to use for publishing updates, or null if no publisher is needed
    *     for this binding.
    */
-  public FloatBinding(FloatTopic topic, FloatSupplier supplier) {
+  public FloatBinding(String topic, FloatSupplier supplier) {
     this(topic, supplier, null);
   }
 
@@ -59,31 +62,38 @@ final class FloatBinding extends DataBinding<FloatPublisher, FloatSubscriber> {
    * @param consumer The consumer to use for updating the subscriber, or null if no subscriber is
    *     needed for this binding.
    */
-  public FloatBinding(FloatTopic topic, FloatSupplier supplier, FloatConsumer consumer) {
+  public FloatBinding(String topic, FloatSupplier supplier, FloatConsumer consumer) {
+    this(topic, Optional.ofNullable(supplier), Optional.ofNullable(consumer));
+  }
+
+  /**
+   * Creates a new FloatBinding with the given topic, supplier, and consumer.
+   *
+   * @param topic The topic to bind to.
+   * @param supplier The supplier to use for publishing updates, or {@link Optional#empty()} if no
+   *     publisher is needed for this binding.
+   * @param consumer The consumer to use for updating the subscriber, or {@link Optional#empty()} if
+   *     no subscriber is needed for this binding.
+   */
+  public FloatBinding(
+      String topic, Optional<FloatSupplier> supplier, Optional<FloatConsumer> consumer) {
     this.topic = topic;
-    this.supplier = Optional.ofNullable(supplier);
-    this.consumer = Optional.ofNullable(consumer);
+    this.supplier = supplier.orElse(() -> DEFAULT_VALUE);
+    this.consumer = consumer.orElse((v) -> {});
+    this.config =
+        new TunableConfig()
+            .withMutable(consumer.isEmpty())
+            .withPolling(TunableConfig.Polling.ALWAYS_GET);
   }
 
   @Override
-  protected Optional<FloatPublisher> newPublisher() {
-    return supplier.map(s -> topic.publish());
+  protected void enableSelf() {
+    tunable = Optional.of(Tunables.publishFloat(topic, supplier, consumer, config));
   }
 
   @Override
-  protected Optional<FloatSubscriber> newSubscriber(PubSubOption... options) {
-    return consumer.map(c -> topic.subscribe(DEFAULT_VALUE, options));
-  }
-
-  @Override
-  protected void publishUpdates(FloatPublisher publisher) {
-    publisher.set(supplier.get().getAsFloat());
-  }
-
-  @Override
-  protected void updateSubscriber(FloatSubscriber subscriber) {
-    for (var value : subscriber.readQueueValues()) {
-      consumer.get().accept(value);
-    }
+  protected void disableSelf() {
+    Tunables.remove(topic);
+    tunable = Optional.empty();
   }
 }

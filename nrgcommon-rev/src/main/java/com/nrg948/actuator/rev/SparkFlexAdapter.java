@@ -29,6 +29,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkBaseConfigAccessor;
 import com.revrobotics.spark.config.SparkFlexConfig;
+import org.wpilib.hardware.bus.CANPort;
 
 /** A motor controller implementation based on the REV Robotics {@link SparkFlex} controllers. */
 public final class SparkFlexAdapter extends SparkAdapter {
@@ -68,14 +69,14 @@ public final class SparkFlexAdapter extends SparkAdapter {
 
     @Override
     public SparkAdapter newAdapter(String logPrefix, int deviceID) {
-      SparkFlex sparkFlex = new SparkFlex(deviceID, spark.getMotorType());
+      SparkFlex sparkFlex = new SparkFlex(CANPort.CAN_S0, deviceID, spark.getMotorType());
 
       return new SparkFlexAdapter(logPrefix, sparkFlex);
     }
   }
 
   /**
-   * Constructs a SparkFlexAdapter.
+   * Constructs a SparkFlexAdapter for a {@link SparkFlex} motor controller.
    *
    * @param logPrefix The prefix for the log entries.
    * @param sparkFlex The {@link SparkFlex} object to adapt.
@@ -85,12 +86,13 @@ public final class SparkFlexAdapter extends SparkAdapter {
   }
 
   /**
-   * Constructs a SparkFlexAdapter.
+   * Constructs a SparkFlexAdapter for a {@link SparkFlex} motor controller.
    *
    * @param logPrefix The prefix for the log entries.
-   * @param deviceID The device ID of the SparkFlex motor controller.
+   * @param busID The CAN bus ID.
+   * @param deviceID The device ID.
    */
-  public SparkFlexAdapter(String logPrefix, int deviceID) {
-    this(logPrefix, new SparkFlex(deviceID, MotorType.kBrushless));
+  public SparkFlexAdapter(String logPrefix, CANPort busID, int deviceID) {
+    this(logPrefix, new SparkFlex(busID, deviceID, MotorType.kBrushless));
   }
 }

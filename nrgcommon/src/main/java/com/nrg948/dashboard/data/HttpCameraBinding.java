@@ -23,8 +23,8 @@
 */
 package com.nrg948.dashboard.data;
 
-import edu.wpi.first.cscore.HttpCamera;
 import java.util.Arrays;
+import org.wpilib.vision.camera.HttpCamera;
 
 /** A binding that binds an {@link HttpCamera} to dashboard data updates. */
 final class HttpCameraBinding extends ContainerBinding {

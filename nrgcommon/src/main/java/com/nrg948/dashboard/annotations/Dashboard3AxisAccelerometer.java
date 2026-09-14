@@ -26,15 +26,15 @@ package com.nrg948.dashboard.annotations;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 
-import edu.wpi.first.util.sendable.Sendable;
-import edu.wpi.first.wpilibj.BuiltInAccelerometer;
 import java.lang.annotation.Target;
+import org.wpilib.hardware.accelerometer.ADXL345_I2C;
+import org.wpilib.tunable.ComplexTunable;
 
 /**
  * Annotation for a 3-axis accelerometer widget on the dashboard.
  *
- * <p>This annotation can be applied to fields or methods that return a {@link BuiltInAccelerometer}
- * object, or any {@link Sendable} object that publishes data in the same format.
+ * <p>This annotation can be applied to fields or methods that return a {@link ADXL345_I2C} object,
+ * or any {@link ComplexTunable} object that publishes data in the same format.
  */
 @Target({FIELD, METHOD})
 public @interface Dashboard3AxisAccelerometer {

@@ -27,9 +27,6 @@ import com.nrg948.util.function.ObjBooleanConsumer;
 import com.nrg948.util.function.ObjFloatConsumer;
 import com.nrg948.util.function.ToBooleanFunction;
 import com.nrg948.util.function.ToFloatFunction;
-import edu.wpi.first.util.function.BooleanConsumer;
-import edu.wpi.first.util.function.FloatConsumer;
-import edu.wpi.first.util.function.FloatSupplier;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.VarHandle;
 import java.util.Arrays;
@@ -47,6 +44,9 @@ import java.util.function.ObjLongConsumer;
 import java.util.function.Supplier;
 import java.util.function.ToDoubleFunction;
 import java.util.function.ToLongFunction;
+import org.wpilib.util.function.BooleanConsumer;
+import org.wpilib.util.function.FloatConsumer;
+import org.wpilib.util.function.FloatSupplier;
 
 /** Utility methods for reflection operations. */
 public final class ReflectionUtil {
@@ -686,6 +686,7 @@ public final class ReflectionUtil {
    * @param args The arguments to determine parameter types for.
    * @return An array of parameter types.
    */
+  @SuppressWarnings("null")
   public static Class<?>[] getParameterTypes(Object... args) {
     return Arrays.stream(args)
         .map(Object::getClass)
@@ -700,6 +701,7 @@ public final class ReflectionUtil {
    * @param parameterTypes The array of parameter types.
    * @return A comma-separated string of parameter type fully-qualified names.
    */
+  @SuppressWarnings("null")
   public static String toArgumentTypeList(Class<?>[] parameterTypes) {
     return String.join(
         ", ", Arrays.stream(parameterTypes).map(Class::getName).toArray(String[]::new));
@@ -712,6 +714,7 @@ public final class ReflectionUtil {
    * @param args The array of arguments.
    * @return A comma-separated string of argument fully-qualified type names.
    */
+  @SuppressWarnings("null")
   public static String toArgumentTypeList(Object... args) {
     return String.join(
         ", ",

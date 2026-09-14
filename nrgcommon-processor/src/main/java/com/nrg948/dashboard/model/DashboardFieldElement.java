@@ -24,7 +24,7 @@
 package com.nrg948.dashboard.model;
 
 import com.nrg948.util.ColorUtil;
-import edu.wpi.first.wpilibj.util.Color8Bit;
+import org.wpilib.util.Color8Bit;
 
 /**
  * Represents a dashboard element that displays a game field with robot and object visualizations.

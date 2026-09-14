@@ -29,6 +29,7 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkBaseConfigAccessor;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import org.wpilib.hardware.bus.CANPort;
 
 /** A motor controller implementation based on the REV Robotics {@link SparkMax} controllers. */
 public final class SparkMaxAdapter extends SparkAdapter {
@@ -68,14 +69,14 @@ public final class SparkMaxAdapter extends SparkAdapter {
 
     @Override
     public SparkAdapter newAdapter(String logPrefix, int deviceID) {
-      SparkMax sparkMax = new SparkMax(deviceID, spark.getMotorType());
+      SparkMax sparkMax = new SparkMax(CANPort.CAN_S0, deviceID, spark.getMotorType());
 
       return new SparkMaxAdapter(logPrefix, sparkMax);
     }
   }
 
   /**
-   * Constructs a SparkMaxAdapter.
+   * Constructs a SparkMaxAdapter for a {@link SparkMax} motor controller.
    *
    * @param logPrefix The prefix for the log entries.
    * @param sparkMax The {@link SparkMax} object to adapt.
@@ -85,12 +86,13 @@ public final class SparkMaxAdapter extends SparkAdapter {
   }
 
   /**
-   * Constructs a SparkMaxAdapter.
+   * Constructs a SparkMaxAdapter for a {@link SparkMax} motor controller.
    *
    * @param logPrefix The prefix for the log entries.
-   * @param deviceID The device ID of the SparkMax motor controller.
+   * @param busID The CAN bus ID.
+   * @param deviceID The device ID.
    */
-  public SparkMaxAdapter(String logPrefix, int deviceID) {
-    this(logPrefix, new SparkMax(deviceID, MotorType.kBrushless));
+  public SparkMaxAdapter(String logPrefix, CANPort busID, int deviceID) {
+    this(logPrefix, new SparkMax(busID, deviceID, MotorType.kBrushless));
   }
 }

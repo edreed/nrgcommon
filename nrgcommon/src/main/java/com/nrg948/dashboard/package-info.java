@@ -174,7 +174,7 @@
  * <p>Note that you must call the {@code RobotContainerDashboardTabs.bind(this)} in the {@code
  * RobotContainer} constructor to enable binding the dashboard tab data. The annotation processor
  * creates a {@code XXXDashboardTabs} class where {@code XXX} is the name of the class annotated
- * with {@link DashboardTab}.
+ * with the {@link DashboardTab} annotation.
  *
  * <p>Finally, apply the {@link Dashboard} annotation to your {@code Robot} class and call {@code
  * DashboardServer.start(this)} in the its constructor to enable the dashboard functionality. In

@@ -50,7 +50,7 @@ public class DashboardAlertsElement extends DashboardWidgetElement {
 
   @Override
   public String getTopic() {
-    return "/SmartDashboard/" + group;
+    return "/Dashboard/" + group;
   }
 
   /** {@return the alert group identifier} */
