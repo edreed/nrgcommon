@@ -27,7 +27,8 @@ plugins {
     id 'java-library'
 
     id 'maven-publish'
-    id "com.diffplug.spotless"  version "7.0.1"
+    
+    alias libs.plugins.spotless
 }
 
 spotless {
@@ -38,7 +39,7 @@ spotless {
 }
 
 group = 'com.nrg948'
-version = '2026.3.1' + (Boolean.valueOf(System.getProperty("release")) ? "" : "-SNAPSHOT")
+version = providers.gradleProperty("com.nrg948.nrgcommon.version").get() + (Boolean.valueOf(System.getProperty("release")) ? "" : "-SNAPSHOT")
 
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
@@ -58,16 +59,12 @@ repositories {
     }
 }
 
-def wpilib = [
-    version: '2026.2.1'
-]
-
 dependencies {
     api project(':nrgcommon')
 
-    api "com.ctre.phoenix6:wpiapi-java:26.3.0"
-    api "edu.wpi.first.wpiunits:wpiunits-java:${wpilib.version}"
-    api "edu.wpi.first.wpiutil:wpiutil-java:${wpilib.version}"
+    api libs.phoenix6
+    api libs.wpilib.wpiunits
+    api libs.wpilib.wpiutil
 }
 
 java {

@@ -1,0 +1,31 @@
+[versions]
+auto-service = "1.1.1"
+jackson = "2.20.0"
+javatuples = "2.0.1"
+phoenix6 = "26.3.0"
+revlib = "2026.0.5"
+spotless = "7.0.1"
+wpilib = "2026.2.1"
+
+[libraries]
+auto-service = { module = "com.google.auto.service:auto-service", version.ref = "auto-service" }
+auto-service-annotations = { module = "com.google.auto.service:auto-service-annotations", version.ref = "auto-service" }
+jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jackson" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+javatuples = { module = "io.arxila.javatuples:javatuples", version.ref = "javatuples" }
+phoenix6 = { module = "com.ctre.phoenix6:wpiapi-java", version.ref = "phoenix6" }
+revlib = { module = "com.revrobotics.frc:REVLib-java", version.ref = "revlib" }
+wpilib-cscore = { module = "edu.wpi.first.cscore:cscore-java", version.ref = "wpilib" }
+wpilib-ntcore = { module = "edu.wpi.first.ntcore:ntcore-java", version.ref = "wpilib" }
+wpilibj-java = { module = "edu.wpi.first.wpilibj:wpilibj-java", version.ref = "wpilib" }
+wpilib-wpilibNewCommands = { module = "edu.wpi.first.wpilibNewCommands:wpilibNewCommands-java", version.ref = "wpilib" }
+wpilib-wpimath = { module = "edu.wpi.first.wpimath:wpimath-java", version.ref = "wpilib" }
+wpilib-wpinet = { module = "edu.wpi.first.wpinet:wpinet-java", version.ref = "wpilib" }
+wpilib-wpiunits = { module = "edu.wpi.first.wpiunits:wpiunits-java", version.ref = "wpilib" }
+wpilib-wpiutil = { module = "edu.wpi.first.wpiutil:wpiutil-java", version.ref = "wpilib" }
+
+[bundles]
+wpilib = ["wpilib-cscore", "wpilib-ntcore", "wpilibj-java", "wpilib-wpilibNewCommands", "wpilib-wpimath", "wpilib-wpinet", "wpilib-wpiunits", "wpilib-wpiutil"]
+
+[plugins]
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
