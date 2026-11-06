@@ -21,12 +21,8 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 */
-
 plugins {
-    // Apply the java-library plugin for API and implementation separation.
-    id 'java-library'
-
-    id 'maven-publish'
+    id 'nrgcommon.java-conventions'
 
     alias libs.plugins.spotless
 }
@@ -38,21 +34,7 @@ spotless {
     }
 }
 
-group = 'com.nrg948'
-version = providers.gradleProperty("com.nrg948.nrgcommon.version").get() + (Boolean.valueOf(System.getProperty("release")) ? "" : "-SNAPSHOT")
-
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
-
 repositories {
-    // Use Maven Central for resolving dependencies.
-    mavenCentral()
-
-    // Add the WPILib Maven repository
-    maven {
-        url = 'https://frcmaven.wpi.edu/artifactory/release/'
-    }
-
     // Add the REV Robotics Maven repository
     maven {
         url = 'https://maven.revrobotics.com/'
@@ -65,41 +47,6 @@ dependencies {
     api libs.revlib
     api libs.wpilib.wpiunits
     api libs.wpilib.wpiutil
-}
-
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
-
-tasks.named('test') {
-    // Use JUnit Platform for unit tests.
-    useJUnitPlatform()
-}
-
-javadoc {
-    options {
-        links 'https://docs.oracle.com/en/java/javase/17/docs/api/','https://github.wpilib.org/allwpilib/docs/release/java/'
-    }
-}
-
-publishing {
-    repositories {
-        mavenLocal()
-        maven {
-            name = "GitHubPackages"
-            url = "https://maven.pkg.github.com/NRG948/nrgcommon"
-            credentials {
-                username = System.getenv("GITHUB_ACTOR")
-                password = System.getenv("GITHUB_TOKEN")
-            }
-        }
-    }
-    publications {
-        gpr(MavenPublication) {
-            from(components.java)
-        }
-    }
 }
 
 // Reformat Java files before compiling the library.
